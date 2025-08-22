@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\DTO;
 
 /**
- * Collection of contacts with pagination info.
+ * Collection of companies with pagination info.
  */
-class ContactCollection extends AbstractCollection {
+class CompanyCollection extends AbstractCollection {
 
   /**
-   * Create ContactCollection from API response.
+   * Create CompanyCollection from API response.
    *
    * @param array $response
    *   The API response data.
@@ -22,7 +22,7 @@ class ContactCollection extends AbstractCollection {
    *   Original search options for pagination.
    *
    * @return self
-   *   The ContactCollection instance.
+   *   The CompanyCollection instance.
    */
   public static function fromApiResponse(
     array $response, 
@@ -30,28 +30,28 @@ class ContactCollection extends AbstractCollection {
     $originalFilter = null, 
     $originalSearchOptions = null
   ): self {
-    $contacts = [];
+    $companies = [];
     
     // Handle Twenty CRM REST API response structure based on OpenAPI spec
-    // Response format: { data: { people: [...] }, pageInfo: {...}, totalCount: ... }
-    if (isset($response['data']['people'])) {
-      foreach ($response['data']['people'] as $personData) {
-        $contacts[] = Contact::fromArray($personData);
+    // Response format: { data: { companies: [...] }, pageInfo: {...}, totalCount: ... }
+    if (isset($response['data']['companies'])) {
+      foreach ($response['data']['companies'] as $companyData) {
+        $companies[] = Company::fromArray($companyData);
       }
     } elseif (isset($response['data']) && is_array($response['data'])) {
-      // Fallback: if data is directly an array of people
-      foreach ($response['data'] as $contactData) {
-        $contacts[] = Contact::fromArray($contactData);
+      // Fallback: if data is directly an array of companies
+      foreach ($response['data'] as $companyData) {
+        $companies[] = Company::fromArray($companyData);
       }
     }
     
     $paginationInfo = self::extractPaginationInfo($response);
     
     return new self(
-      items: $contacts,
-      total: $paginationInfo['total'] ?: count($contacts),
+      items: $companies,
+      total: $paginationInfo['total'] ?: count($companies),
       page: $paginationInfo['page'],
-      pageSize: count($contacts),
+      pageSize: count($companies),
       hasMore: $paginationInfo['hasMore'],
       startCursor: $paginationInfo['startCursor'],
       endCursor: $paginationInfo['endCursor'],
@@ -62,11 +62,11 @@ class ContactCollection extends AbstractCollection {
   }
 
   /**
-   * Get contacts.
+   * Get companies.
    *
-   * @return Contact[]
+   * @return Company[]
    */
-  public function getContacts(): array {
+  public function getCompanies(): array {
     return $this->items;
   }
 
@@ -75,23 +75,23 @@ class ContactCollection extends AbstractCollection {
    */
   protected function setItems(array $items): self {
     $this->items = [];
-    foreach ($items as $contact) {
-      if ($contact instanceof Contact) {
-        $this->items[] = $contact;
+    foreach ($items as $company) {
+      if ($company instanceof Company) {
+        $this->items[] = $company;
       }
     }
     return $this;
   }
 
   /**
-   * Add a contact to the collection.
+   * Add a company to the collection.
    *
-   * @param Contact $contact
+   * @param Company $company
    *
    * @return self
    */
-  public function addContact(Contact $contact): self {
-    $this->items[] = $contact;
+  public function addCompany(Company $company): self {
+    $this->items[] = $company;
     return $this;
   }
 
@@ -99,7 +99,7 @@ class ContactCollection extends AbstractCollection {
    * {@inheritdoc}
    */
   public function toArray(): array {
-    return array_map(fn(Contact $contact) => $contact->toArray(), $this->items);
+    return array_map(fn(Company $company) => $company->toArray(), $this->items);
   }
 
   /**
@@ -115,7 +115,7 @@ class ContactCollection extends AbstractCollection {
 
     $requestOptions = ['query' => $queryParams];
 
-    return $this->httpClient->request('GET', '/people', $requestOptions);
+    return $this->httpClient->request('GET', '/companies', $requestOptions);
   }
 
 }

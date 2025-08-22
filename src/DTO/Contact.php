@@ -22,6 +22,8 @@ class Contact {
    *   The contact last name.
    * @param string|null $phone
    *   The contact phone number.
+   * @param string|null $jobTitle
+   *   The contact job title.
    * @param string|null $companyId
    *   The associated company ID.
    * @param array $customFields
@@ -37,6 +39,7 @@ class Contact {
     private ?string $firstName = null,
     private ?string $lastName = null,
     private ?string $phone = null,
+    private ?string $jobTitle = null,
     private ?string $companyId = null,
     private array $customFields = [],
     private ?\DateTimeInterface $createdAt = null,
@@ -77,6 +80,9 @@ class Contact {
     $firstName = $data['name']['firstName'] ?? null;
     $lastName = $data['name']['lastName'] ?? null;
     
+    // Extract job title
+    $jobTitle = $data['jobTitle'] ?? null;
+    
     // Extract standard fields for Twenty CRM
     $standardFields = ['id', 'emails', 'phones', 'name', 'companyId', 'createdAt', 'updatedAt', 'deletedAt', 'jobTitle', 'city', 'avatarUrl'];
     $customFields = array_diff_key($data, array_flip($standardFields));
@@ -87,6 +93,7 @@ class Contact {
       firstName: $firstName,
       lastName: $lastName,
       phone: $phone,
+      jobTitle: $jobTitle,
       companyId: $data['companyId'] ?? null,
       customFields: $customFields,
       createdAt: $createdAt,
@@ -117,6 +124,10 @@ class Contact {
         'firstName' => $this->firstName,
         'lastName' => $this->lastName,
       ];
+    }
+    
+    if ($this->jobTitle !== null) {
+      $data['jobTitle'] = $this->jobTitle;
     }
     
     if ($this->companyId !== null) {
@@ -158,6 +169,10 @@ class Contact {
 
   public function getPhone(): ?string {
     return $this->phone;
+  }
+
+  public function getJobTitle(): ?string {
+    return $this->jobTitle;
   }
 
   public function getCompanyId(): ?string {
@@ -204,6 +219,11 @@ class Contact {
 
   public function setPhone(?string $phone): self {
     $this->phone = $phone;
+    return $this;
+  }
+
+  public function setJobTitle(?string $jobTitle): self {
+    $this->jobTitle = $jobTitle;
     return $this;
   }
 

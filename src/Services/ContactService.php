@@ -36,10 +36,7 @@ final class ContactService implements ContactServiceInterface {
 
     $response = $this->httpClient->request('GET', '/people', $requestOptions);
     
-    // Debug: Log the raw API response structure
-    error_log('Twenty CRM Raw Response: ' . json_encode($response));
-    
-    return ContactCollection::fromApiResponse($response);
+    return ContactCollection::fromApiResponse($response, $this->httpClient, $filter, $options);
   }
 
   /**
