@@ -35,7 +35,7 @@ final class ContactService implements ContactServiceInterface {
     $requestOptions = ['query' => $queryParams];
 
     $response = $this->httpClient->request('GET', '/people', $requestOptions);
-    
+
     return ContactCollection::fromApiResponse($response, $this->httpClient, $filter, $options);
   }
 
@@ -45,7 +45,7 @@ final class ContactService implements ContactServiceInterface {
   public function getById(string $id): ?Contact {
     try {
       $response = $this->httpClient->request('GET', '/people/' . $id);
-      return Contact::fromArray($response);
+      return Contact::fromArray($response['data']['person']);
     }
     catch (ApiException $e) {
       if ($e->getCode() === 404) {
@@ -60,11 +60,11 @@ final class ContactService implements ContactServiceInterface {
    */
   public function create(Contact $contact): Contact {
     $data = $contact->toArray();
-    
+
     $response = $this->httpClient->request('POST', '/people', [
       'json' => $data,
     ]);
-    
+
     return Contact::fromArray($response);
   }
 
@@ -75,14 +75,14 @@ final class ContactService implements ContactServiceInterface {
     if (!$contact->getId()) {
       throw new \InvalidArgumentException('Contact must have an ID to be updated');
     }
-    
+
     $data = $contact->toArray();
     unset($data['id']); // Remove ID from body as it's in the URL
-    
+
     $response = $this->httpClient->request('PATCH', '/people/' . $contact->getId(), [
       'json' => $data,
     ]);
-    
+
     return Contact::fromArray($response);
   }
 
@@ -107,11 +107,11 @@ final class ContactService implements ContactServiceInterface {
    */
   public function batchUpsert(array $contacts): ContactCollection {
     $data = array_map(fn(Contact $contact) => $contact->toArray(), $contacts);
-    
+
     $response = $this->httpClient->request('POST', '/batch/people', [
       'json' => ['data' => $data],
     ]);
-    
+
     return ContactCollection::fromApiResponse($response);
   }
 
@@ -135,15 +135,15 @@ final class ContactService implements ContactServiceInterface {
    */
   public function findByEmail(string $email): ?Contact {
     $filter = new ContactSearchFilter(email: $email);
-    
+
     $options = new SearchOptions(limit: 1);
-    
+
     $collection = $this->find($filter, $options);
-    
+
     if ($collection->isEmpty()) {
       return null;
     }
-    
+
     $contacts = $collection->getContacts();
     return $contacts[0];
   }

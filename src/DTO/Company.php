@@ -16,8 +16,14 @@ class Company {
    *   The company ID.
    * @param string|null $name
    *   The company name.
-   * @param array $domainNames
-   *   The company domain names.
+   * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $domainName
+   *   The company domain links.
+   * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $facebook
+   *   The company Facebook links.
+   * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $linkedinLink
+   *   The company LinkedIn links.
+   * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $xLink
+   *   The company X (Twitter) links.
    * @param string|null $addressCity
    *   The company city.
    * @param string|null $addressCountry
@@ -32,10 +38,6 @@ class Company {
    *   The company postcode.
    * @param int|null $employees
    *   Number of employees.
-   * @param string|null $linkedinUrl
-   *   The company LinkedIn URL.
-   * @param string|null $xUrl
-   *   The company X (Twitter) URL.
    * @param array $customFields
    *   Custom field values.
    * @param \DateTimeInterface|null $createdAt
@@ -46,7 +48,10 @@ class Company {
   public function __construct(
     private ?string $id = null,
     private ?string $name = null,
-    private array $domainNames = [],
+    private ?LinkCollection $domainName = null,
+    private ?LinkCollection $facebook = null,
+    private ?LinkCollection $linkedinLink = null,
+    private ?LinkCollection $xLink = null,
     private ?string $addressCity = null,
     private ?string $addressCountry = null,
     private ?string $addressStreet1 = null,
@@ -54,8 +59,6 @@ class Company {
     private ?string $addressState = null,
     private ?string $addressPostcode = null,
     private ?int $employees = null,
-    private ?string $linkedinUrl = null,
-    private ?string $xUrl = null,
     private array $customFields = [],
     private ?\DateTimeInterface $createdAt = null,
     private ?\DateTimeInterface $updatedAt = null,
@@ -82,28 +85,44 @@ class Company {
     $addressState = $data['address']['addressState'] ?? null;
     $addressPostcode = $data['address']['addressPostcode'] ?? null;
     
-    // Extract domain names - handle both string and array formats
-    $domainNames = [];
-    if (isset($data['domainName'])) {
-      if (is_string($data['domainName'])) {
-        $domainNames = [$data['domainName']];
-      } elseif (is_array($data['domainName'])) {
-        $domainNames = $data['domainName'];
-      }
+    // Extract domain links
+    $domainName = null;
+    if (isset($data['domainName']) && is_array($data['domainName'])) {
+      $domainName = LinkCollection::fromArray($data['domainName']);
+    }
+    
+    // Extract Facebook links
+    $facebook = null;
+    if (isset($data['facebook']) && is_array($data['facebook'])) {
+      $facebook = LinkCollection::fromArray($data['facebook']);
+    }
+    
+    // Extract LinkedIn links  
+    $linkedinLink = null;
+    if (isset($data['linkedinLink']) && is_array($data['linkedinLink'])) {
+      $linkedinLink = LinkCollection::fromArray($data['linkedinLink']);
+    }
+    
+    // Extract X (Twitter) links
+    $xLink = null;
+    if (isset($data['xLink']) && is_array($data['xLink'])) {
+      $xLink = LinkCollection::fromArray($data['xLink']);
     }
     
     // Extract standard fields for Twenty CRM
     $standardFields = [
-      'id', 'name', 'domainName', 'address', 'employees', 
-      'linkedinUrl', 'xUrl', 'createdAt', 'updatedAt', 'deletedAt',
-      'annualRecurringRevenue', 'idealCustomerProfile'
+      'id', 'name', 'domainName', 'facebook', 'linkedinLink', 'xLink', 'address', 'employees', 
+      'createdAt', 'updatedAt', 'deletedAt', 'annualRecurringRevenue', 'idealCustomerProfile'
     ];
     $customFields = array_diff_key($data, array_flip($standardFields));
     
     return new self(
       id: $data['id'] ?? null,
       name: $data['name'] ?? null,
-      domainNames: $domainNames,
+      domainName: $domainName,
+      facebook: $facebook,
+      linkedinLink: $linkedinLink,
+      xLink: $xLink,
       addressCity: $addressCity,
       addressCountry: $addressCountry,
       addressStreet1: $addressStreet1,
@@ -111,8 +130,6 @@ class Company {
       addressState: $addressState,
       addressPostcode: $addressPostcode,
       employees: isset($data['employees']) ? (int) $data['employees'] : null,
-      linkedinUrl: $data['linkedinUrl'] ?? null,
-      xUrl: $data['xUrl'] ?? null,
       customFields: $customFields,
       createdAt: $createdAt,
       updatedAt: $updatedAt,
@@ -132,10 +149,20 @@ class Company {
       $data['name'] = $this->name;
     }
     
-    if (!empty($this->domainNames)) {
-      // If there's only one domain, send as string for backwards compatibility
-      // Otherwise send as array
-      $data['domainName'] = count($this->domainNames) === 1 ? $this->domainNames[0] : $this->domainNames;
+    if ($this->domainName !== null && !$this->domainName->isEmpty()) {
+      $data['domainName'] = $this->domainName->toArray();
+    }
+    
+    if ($this->facebook !== null && !$this->facebook->isEmpty()) {
+      $data['facebook'] = $this->facebook->toArray();
+    }
+    
+    if ($this->linkedinLink !== null && !$this->linkedinLink->isEmpty()) {
+      $data['linkedinLink'] = $this->linkedinLink->toArray();
+    }
+    
+    if ($this->xLink !== null && !$this->xLink->isEmpty()) {
+      $data['xLink'] = $this->xLink->toArray();
     }
     
     // Build address object if any address fields are set
@@ -190,16 +217,20 @@ class Company {
     return $this->name;
   }
 
-  public function getDomainNames(): array {
-    return $this->domainNames;
+  public function getDomainName(): ?LinkCollection {
+    return $this->domainName;
   }
 
-  public function getPrimaryDomainName(): ?string {
-    return $this->domainNames[0] ?? null;
+  public function getFacebook(): ?LinkCollection {
+    return $this->facebook;
   }
 
-  public function hasDomainName(string $domain): bool {
-    return in_array($domain, $this->domainNames, true);
+  public function getLinkedinLink(): ?LinkCollection {
+    return $this->linkedinLink;
+  }
+
+  public function getXLink(): ?LinkCollection {
+    return $this->xLink;
   }
 
   public function getAddressCity(): ?string {
@@ -230,13 +261,6 @@ class Company {
     return $this->employees;
   }
 
-  public function getLinkedinUrl(): ?string {
-    return $this->linkedinUrl;
-  }
-
-  public function getXUrl(): ?string {
-    return $this->xUrl;
-  }
 
   public function getLocationString(): string {
     $parts = array_filter([
@@ -274,20 +298,23 @@ class Company {
     return $this;
   }
 
-  public function setDomainNames(array $domainNames): self {
-    $this->domainNames = $domainNames;
+  public function setDomainName(?LinkCollection $domainName): self {
+    $this->domainName = $domainName;
     return $this;
   }
 
-  public function addDomainName(string $domainName): self {
-    if (!$this->hasDomainName($domainName)) {
-      $this->domainNames[] = $domainName;
-    }
+  public function setFacebook(?LinkCollection $facebook): self {
+    $this->facebook = $facebook;
     return $this;
   }
 
-  public function removeDomainName(string $domainName): self {
-    $this->domainNames = array_filter($this->domainNames, fn($domain) => $domain !== $domainName);
+  public function setLinkedinLink(?LinkCollection $linkedinLink): self {
+    $this->linkedinLink = $linkedinLink;
+    return $this;
+  }
+
+  public function setXLink(?LinkCollection $xLink): self {
+    $this->xLink = $xLink;
     return $this;
   }
 
@@ -326,15 +353,6 @@ class Company {
     return $this;
   }
 
-  public function setLinkedinUrl(?string $linkedinUrl): self {
-    $this->linkedinUrl = $linkedinUrl;
-    return $this;
-  }
-
-  public function setXUrl(?string $xUrl): self {
-    $this->xUrl = $xUrl;
-    return $this;
-  }
 
   public function setCustomField(string $key, mixed $value): self {
     $this->customFields[$key] = $value;
