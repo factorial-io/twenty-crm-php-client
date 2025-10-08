@@ -11,7 +11,6 @@ use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\Phone;
 use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
-use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
 class ContactServiceTest extends IntegrationTestCase

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests;
 
-use Factorial\TwentyCrm\Client\TwentyCrmClient;
 use Factorial\TwentyCrm\Auth\BearerTokenAuth;
+use Factorial\TwentyCrm\Client\TwentyCrmClient;
 use Factorial\TwentyCrm\Http\GuzzleHttpClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
@@ -111,6 +111,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         $prefix = $this->getTestPrefix();
         $timestamp = time();
+
         return "{$prefix}{$base}_{$timestamp}";
     }
 
@@ -120,6 +121,7 @@ abstract class IntegrationTestCase extends TestCase
     protected function generateTestEmail(): string
     {
         $id = $this->createTestId();
+
         return "test_{$id}@example.com";
     }
 

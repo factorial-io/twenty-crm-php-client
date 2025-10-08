@@ -7,5 +7,6 @@ namespace Factorial\TwentyCrm\Exception;
 /**
  * Exception thrown when authentication fails.
  */
-class AuthenticationException extends TwentyCrmException {
+class AuthenticationException extends TwentyCrmException
+{
 }

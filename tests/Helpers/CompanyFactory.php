@@ -51,6 +51,7 @@ class CompanyFactory
     public static function createUnique(string $prefix = 'TEST_'): Company
     {
         $id = uniqid();
+
         return self::create([
             'name' => $prefix . $id . ' Company',
             'domainName' => [

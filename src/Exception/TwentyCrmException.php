@@ -7,5 +7,6 @@ namespace Factorial\TwentyCrm\Exception;
 /**
  * Base exception for Twenty CRM client errors.
  */
-class TwentyCrmException extends \Exception {
+class TwentyCrmException extends \Exception
+{
 }

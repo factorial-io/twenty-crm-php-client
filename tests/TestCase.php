@@ -42,6 +42,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         $content = file_get_contents($fixturePath);
+
         return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
     }
 

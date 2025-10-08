@@ -59,6 +59,7 @@ class ContactFactory
     public static function createUnique(string $prefix = 'TEST_'): Contact
     {
         $id = uniqid();
+
         return self::create([
             'name' => [
                 'firstName' => $prefix . $id,

@@ -79,11 +79,29 @@ class Contact
             $email = $data['emails']['additionalEmails'][0];
         }
 
-        // Extract collections using ternary operators
-        $phones = isset($data['phones']) && is_array($data['phones']) ? PhoneCollection::fromArray($data['phones']) : null;
-        $mobilePhones = isset($data['mobilePhones']) && is_array($data['mobilePhones']) ? PhoneCollection::fromArray($data['mobilePhones']) : null;
-        $linkedInLink = isset($data['linkedinLink']) && is_array($data['linkedinLink']) ? LinkCollection::fromArray($data['linkedinLink']) : null;
-        $xLink = isset($data['xLink']) && is_array($data['xLink']) ? LinkCollection::fromArray($data['xLink']) : null;
+        // Extract phones collection
+        $phones = null;
+        if (isset($data['phones']) && is_array($data['phones'])) {
+            $phones = PhoneCollection::fromArray($data['phones']);
+        }
+
+        // Extract mobile phones collection
+        $mobilePhones = null;
+        if (isset($data['mobilePhones']) && is_array($data['mobilePhones'])) {
+            $mobilePhones = PhoneCollection::fromArray($data['mobilePhones']);
+        }
+
+        // Extract LinkedIn link collection
+        $linkedInLink = null;
+        if (isset($data['linkedinLink']) && is_array($data['linkedinLink'])) {
+            $linkedInLink = LinkCollection::fromArray($data['linkedinLink']);
+        }
+
+        // Extract X (Twitter) link collection
+        $xLink = null;
+        if (isset($data['xLink']) && is_array($data['xLink'])) {
+            $xLink = LinkCollection::fromArray($data['xLink']);
+        }
 
         // Extract names from name object
         $firstName = $data['name']['firstName'] ?? null;
@@ -99,7 +117,7 @@ class Contact
           'country', 'town', 'contactAddress', 'hubspotId', 'industry', 'mobilePhones',
           'numberOfTimesContacted', 'seniority', 'ownerId', 'leadSource', 'lifecycleStage',
           'originalTrafficSource', 'recordSource', 'leadStatus', 'campaignTmp', 'outreachId',
-          'linkedinLink', 'xLink'
+          'linkedinLink', 'xLink',
         ];
         $customFields = array_diff_key($data, array_flip($standardFields));
 
@@ -299,30 +317,35 @@ class Contact
     public function setId(?string $id): self
     {
         $this->id = $id;
+
         return $this;
     }
 
     public function setEmail(?string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
     public function setFirstName(?string $firstName): self
     {
         $this->firstName = $firstName;
+
         return $this;
     }
 
     public function setLastName(?string $lastName): self
     {
         $this->lastName = $lastName;
+
         return $this;
     }
 
     public function setPhones(?PhoneCollection $phones): self
     {
         $this->phones = $phones;
+
         return $this;
     }
 
@@ -339,12 +362,14 @@ class Contact
         } else {
             $this->phones = new PhoneCollection(new Phone($phone));
         }
+
         return $this;
     }
 
     public function setMobilePhones(?PhoneCollection $mobilePhones): self
     {
         $this->mobilePhones = $mobilePhones;
+
         return $this;
     }
 
@@ -361,12 +386,14 @@ class Contact
         } else {
             $this->mobilePhones = new PhoneCollection(new Phone($mobilePhone));
         }
+
         return $this;
     }
 
     public function setLinkedInLink(?LinkCollection $linkedInLink): self
     {
         $this->linkedInLink = $linkedInLink;
+
         return $this;
     }
 
@@ -384,12 +411,14 @@ class Contact
         } else {
             $this->linkedInLink = new LinkCollection(new Link($url, $label));
         }
+
         return $this;
     }
 
     public function setXLink(?LinkCollection $xLink): self
     {
         $this->xLink = $xLink;
+
         return $this;
     }
 
@@ -407,31 +436,35 @@ class Contact
         } else {
             $this->xLink = new LinkCollection(new Link($url, $label));
         }
+
         return $this;
     }
 
     public function setJobTitle(?string $jobTitle): self
     {
         $this->jobTitle = $jobTitle;
+
         return $this;
     }
 
     public function setCompanyId(?string $companyId): self
     {
         $this->companyId = $companyId;
+
         return $this;
     }
 
     public function setCustomField(string $key, mixed $value): self
     {
         $this->customFields[$key] = $value;
+
         return $this;
     }
 
     public function setCustomFields(array $customFields): self
     {
         $this->customFields = $customFields;
+
         return $this;
     }
-
 }

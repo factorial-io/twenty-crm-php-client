@@ -7,22 +7,21 @@ namespace Factorial\TwentyCrm\DTO;
 /**
  * Interface for search filter DTOs.
  */
-interface FilterInterface {
+interface FilterInterface
+{
+    /**
+     * Build filter string for the Twenty CRM API.
+     *
+     * @return string|null
+     *   The filter string or NULL if no filters are set.
+     */
+    public function buildFilterString(): ?string;
 
-  /**
-   * Build filter string for the Twenty CRM API.
-   *
-   * @return string|null
-   *   The filter string or NULL if no filters are set.
-   */
-  public function buildFilterString(): ?string;
-
-  /**
-   * Check if any filters are set.
-   *
-   * @return bool
-   *   TRUE if any filters are set, FALSE otherwise.
-   */
-  public function hasFilters(): bool;
-
+    /**
+     * Check if any filters are set.
+     *
+     * @return bool
+     *   TRUE if any filters are set, FALSE otherwise.
+     */
+    public function hasFilters(): bool;
 }
