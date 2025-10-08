@@ -125,7 +125,7 @@ class CompanyServiceTest extends IntegrationTestCase
         // Note: Using less-common valid domains. If test fails with "Duplicate Domain Name",
         // the domain is already in use in the Twenty CRM database.
         $uniqueId = uniqid('test_');
-        $testDomain = "https://iana.org"; // Internet Assigned Numbers Authority - less likely to be used
+        $testDomain = 'https://iana.org'; // Internet Assigned Numbers Authority - less likely to be used
 
         $domainCollection = new DomainNameCollection(
             new DomainName($testDomain)
@@ -163,10 +163,10 @@ class CompanyServiceTest extends IntegrationTestCase
         // Create a unique company with multiple real but uncommon domains
         $uniqueId = uniqid('test_');
         $domainCollection = new DomainNameCollection(
-            primaryDomainName: new DomainName("https://ietf.org"), // Internet Engineering Task Force
+            primaryDomainName: new DomainName('https://ietf.org'), // Internet Engineering Task Force
             additionalDomainNames: [
-              new DomainName("https://rfc-editor.org"),
-              new DomainName("https://ieee.org"),
+              new DomainName('https://rfc-editor.org'),
+              new DomainName('https://ieee.org'),
             ]
         );
 
@@ -194,7 +194,9 @@ class CompanyServiceTest extends IntegrationTestCase
             $this->client->companies()->delete($created->getId());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
-                $this->markTestSkipped('One or more domains already exist in database. Twenty CRM requires unique domains.');
+                $this->markTestSkipped(
+                    'One or more domains already exist in database. Twenty CRM requires unique domains.'
+                );
             }
             throw $e;
         }
@@ -207,7 +209,7 @@ class CompanyServiceTest extends IntegrationTestCase
         // Create a company first with a real domain
         $uniqueId = uniqid('test_');
         $domainCollection = new DomainNameCollection(
-            new DomainName("https://w3.org") // World Wide Web Consortium
+            new DomainName('https://w3.org') // World Wide Web Consortium
         );
 
         $company = new Company(
@@ -245,7 +247,7 @@ class CompanyServiceTest extends IntegrationTestCase
         // Create a company first with a real domain
         $uniqueId = uniqid('test_');
         $domainCollection = new DomainNameCollection(
-            new DomainName("https://unicode.org")
+            new DomainName('https://unicode.org')
         );
 
         $company = new Company(
@@ -259,9 +261,9 @@ class CompanyServiceTest extends IntegrationTestCase
 
             // Update domain with a different real domain
             $newDomainCollection = new DomainNameCollection(
-                primaryDomainName: new DomainName("https://kernel.org"),
+                primaryDomainName: new DomainName('https://kernel.org'),
                 additionalDomainNames: [
-                  new DomainName("https://apache.org"),
+                  new DomainName('https://apache.org'),
                 ]
             );
             $created->setDomainName($newDomainCollection);
@@ -277,7 +279,9 @@ class CompanyServiceTest extends IntegrationTestCase
             $this->client->companies()->delete($created->getId());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
-                $this->markTestSkipped('One or more domains already exist in database. Twenty CRM requires unique domains.');
+                $this->markTestSkipped(
+                    'One or more domains already exist in database. Twenty CRM requires unique domains.'
+                );
             }
             throw $e;
         }
@@ -290,7 +294,7 @@ class CompanyServiceTest extends IntegrationTestCase
         // Create a company first with a real domain
         $uniqueId = uniqid('test_');
         $domainCollection = new DomainNameCollection(
-            new DomainName("https://mozilla.org")
+            new DomainName('https://mozilla.org')
         );
 
         $company = new Company(
