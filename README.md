@@ -334,7 +334,7 @@ git push origin 0.2.2
    - Check code quality (PHPCS + PHP CS Fixer)
    - Generate changelog from commits
    - Create GitHub release
-   - Publish to Packagist (if configured)
+   - Publish to Packagist
 
 **Versioning Guidelines:**
 - **Major** (X.0.0): Breaking changes
