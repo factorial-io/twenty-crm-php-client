@@ -244,6 +244,47 @@ try {
 - Company Management: Company search and retrieval
 - Extensible: Easy to extend for additional endpoints
 
+## Testing
+
+This library includes a comprehensive test suite with both unit and integration tests.
+
+### Running Unit Tests (No Credentials Required)
+
+```bash
+# Run all unit tests
+vendor/bin/phpunit
+
+# Or explicitly
+vendor/bin/phpunit --testsuite=unit
+```
+
+Unit tests use mocked API responses and don't require any credentials or API access.
+
+### Running Integration Tests (Requires Credentials)
+
+Integration tests run against a real Twenty CRM backend:
+
+1. Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+
+2. Add your Twenty CRM credentials to `.env`:
+```bash
+TWENTY_API_BASE_URI=https://your-instance.twenty.com/rest/
+TWENTY_API_TOKEN=your_api_token_here
+TWENTY_TEST_MODE=integration
+```
+
+3. Run integration tests:
+```bash
+vendor/bin/phpunit --testsuite=integration
+```
+
+**Note**: Integration tests create and delete real data in your Twenty CRM instance. Use a test workspace if possible.
+
+For detailed testing documentation, see [TESTING.md](TESTING.md).
+
 ## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
@@ -257,6 +298,9 @@ cd twenty-crm-php-client
 
 # Install dependencies
 composer install
+
+# Run tests
+vendor/bin/phpunit
 ```
 
 ## License
