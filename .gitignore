@@ -1,0 +1,23 @@
+# Environment Configuration
+.env
+.env.local
+
+# PHPUnit
+phpunit.xml
+.phpunit.result.cache
+/tests/output/
+
+# Composer
+/vendor/
+composer.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
