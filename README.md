@@ -303,6 +303,46 @@ composer install
 vendor/bin/phpunit
 ```
 
+### Creating a Release
+
+Releases are automated via GitHub Actions. To create a new release:
+
+1. **Commit your changes** with conventional commit messages:
+```bash
+git add .
+git commit -m "feat: add new feature"
+```
+
+2. **Push to main**:
+```bash
+git push origin main
+```
+
+3. **Create and push a version tag**:
+```bash
+# For feature releases (x.Y.0)
+git tag -a 0.3.0 -m "Release 0.3.0: Description"
+git push origin 0.3.0
+
+# For bug fixes (x.y.Z)
+git tag -a 0.2.2 -m "Release 0.2.2: Bug fixes"
+git push origin 0.2.2
+```
+
+4. **Automated workflow** will then:
+   - Run all tests
+   - Check code quality (PHPCS + PHP CS Fixer)
+   - Generate changelog from commits
+   - Create GitHub release
+   - Publish to Packagist (if configured)
+
+**Versioning Guidelines:**
+- **Major** (X.0.0): Breaking changes
+- **Minor** (x.Y.0): New features (backward compatible)
+- **Patch** (x.y.Z): Bug fixes (backward compatible)
+
+**Note**: The changelog is automatically updated by CI, so manual updates are not needed.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
