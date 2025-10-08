@@ -48,7 +48,7 @@ final class ContactService implements ContactServiceInterface {
       return Contact::fromArray($response['data']['person']);
     }
     catch (ApiException $e) {
-      if ($e->getCode() === 404) {
+      if ($e->getCode() === 404 || $e->getCode() === 400) {
         return null;
       }
       throw $e;
@@ -65,7 +65,7 @@ final class ContactService implements ContactServiceInterface {
       'json' => $data,
     ]);
 
-    return Contact::fromArray($response);
+    return Contact::fromArray($response['data']['createPerson']);
   }
 
   /**
@@ -83,7 +83,7 @@ final class ContactService implements ContactServiceInterface {
       'json' => $data,
     ]);
 
-    return Contact::fromArray($response);
+    return Contact::fromArray($response['data']['updatePerson']);
   }
 
   /**
@@ -95,7 +95,7 @@ final class ContactService implements ContactServiceInterface {
       return true;
     }
     catch (ApiException $e) {
-      if ($e->getCode() === 404) {
+      if ($e->getCode() === 404 || $e->getCode() === 400) {
         return false;
       }
       throw $e;

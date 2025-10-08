@@ -18,4 +18,18 @@ class ApiException extends TwentyCrmException {
     parent::__construct($message, $statusCode, $previous);
   }
 
+  /**
+   * Get the HTTP status code.
+   */
+  public function getStatusCode(): int {
+    return $this->statusCode;
+  }
+
+  /**
+   * Get the response body.
+   */
+  public function getResponseBody(): ?string {
+    return $this->response;
+  }
+
 }
