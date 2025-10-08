@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-10-08
+
+- feat: add domain name handling and company CRUD operations
+- docs: add historical entries to changelog for versions 0.1.0-0.2.0
+- docs: update changelog for 0.2.1
+
 ## [0.2.1] - 2025-10-08
 
 - ci: add automated release workflow
