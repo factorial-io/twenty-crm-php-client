@@ -43,4 +43,48 @@ interface CompanyServiceInterface
      *   When the API request fails.
      */
     public function getById(string $id): ?Company;
+
+    /**
+     * Create a new company.
+     *
+     * @param \Factorial\TwentyCrm\DTO\Company $company
+     *   The company to create.
+     *
+     * @return \Factorial\TwentyCrm\DTO\Company
+     *   The created company with ID.
+     *
+     * @throws \Factorial\TwentyCrm\Exception\TwentyCrmException
+     *   When the API request fails.
+     */
+    public function create(Company $company): Company;
+
+    /**
+     * Update an existing company.
+     *
+     * @param \Factorial\TwentyCrm\DTO\Company $company
+     *   The company to update (must have an ID).
+     *
+     * @return \Factorial\TwentyCrm\DTO\Company
+     *   The updated company.
+     *
+     * @throws \InvalidArgumentException
+     *   When the company doesn't have an ID.
+     * @throws \Factorial\TwentyCrm\Exception\TwentyCrmException
+     *   When the API request fails.
+     */
+    public function update(Company $company): Company;
+
+    /**
+     * Delete a company by its UUID.
+     *
+     * @param string $id
+     *   The company UUID.
+     *
+     * @return bool
+     *   TRUE if deleted, FALSE if not found.
+     *
+     * @throws \Factorial\TwentyCrm\Exception\TwentyCrmException
+     *   When the API request fails.
+     */
+    public function delete(string $id): bool;
 }

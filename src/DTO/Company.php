@@ -16,8 +16,8 @@ class Company
      *   The company ID.
      * @param string|null $name
      *   The company name.
-     * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $domainName
-     *   The company domain links.
+     * @param \Factorial\TwentyCrm\DTO\DomainNameCollection|null $domainName
+     *   The company domain names.
      * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $facebook
      *   The company Facebook links.
      * @param \Factorial\TwentyCrm\DTO\LinkCollection|null $linkedinLink
@@ -48,7 +48,7 @@ class Company
     public function __construct(
         private ?string $id = null,
         private ?string $name = null,
-        private ?LinkCollection $domainName = null,
+        private ?DomainNameCollection $domainName = null,
         private ?LinkCollection $facebook = null,
         private ?LinkCollection $linkedinLink = null,
         private ?LinkCollection $xLink = null,
@@ -87,10 +87,10 @@ class Company
         $addressState = $data['address']['addressState'] ?? null;
         $addressPostcode = $data['address']['addressPostcode'] ?? null;
 
-        // Extract domain links
+        // Extract domain names
         $domainName = null;
         if (isset($data['domainName']) && is_array($data['domainName'])) {
-            $domainName = LinkCollection::fromArray($data['domainName']);
+            $domainName = DomainNameCollection::fromArray($data['domainName']);
         }
 
         // Extract Facebook links
@@ -112,9 +112,14 @@ class Company
         }
 
         // Extract standard fields for Twenty CRM
+        // Also exclude read-only/computed fields that shouldn't be in customFields
         $standardFields = [
           'id', 'name', 'domainName', 'facebook', 'linkedinLink', 'xLink', 'address', 'employees',
           'createdAt', 'updatedAt', 'deletedAt', 'annualRecurringRevenue', 'idealCustomerProfile',
+          // Read-only/computed fields
+          'searchVector', 'createdBy', 'position', 'phones', 'webTechnologies', 'annualRevenue',
+          'industry', 'hubspotId', 'yearFounded', 'description', 'timezone', 'linkedinBio',
+          'isPublic', 'lifecycleStage', 'originalTrafficSource', 'accountOwnerId', 'lastActivityDate',
         ];
         $customFields = array_diff_key($data, array_flip($standardFields));
 
@@ -191,14 +196,6 @@ class Company
             $data['employees'] = $this->employees;
         }
 
-        if ($this->linkedinUrl !== null) {
-            $data['linkedinUrl'] = $this->linkedinUrl;
-        }
-
-        if ($this->xUrl !== null) {
-            $data['xUrl'] = $this->xUrl;
-        }
-
         // Add custom fields
         $data = array_merge($data, $this->customFields);
 
@@ -222,7 +219,7 @@ class Company
         return $this->name;
     }
 
-    public function getDomainName(): ?LinkCollection
+    public function getDomainName(): ?DomainNameCollection
     {
         return $this->domainName;
     }
@@ -323,7 +320,7 @@ class Company
         return $this;
     }
 
-    public function setDomainName(?LinkCollection $domainName): self
+    public function setDomainName(?DomainNameCollection $domainName): self
     {
         $this->domainName = $domainName;
 
