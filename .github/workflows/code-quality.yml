@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        php-version: ['8.1', '8.2', '8.3']
+        php-version: ['8.1', '8.2', '8.3', '8.4']
 
     steps:
     - uses: actions/checkout@v4
@@ -40,6 +40,9 @@ jobs:
 
     - name: Run PHPCS
       run: vendor/bin/phpcs
+
+    - name: Run PHPStan
+      run: vendor/bin/phpstan analyse
 
     - name: Run PHPUnit (Unit Tests)
       run: vendor/bin/phpunit --testsuite unit

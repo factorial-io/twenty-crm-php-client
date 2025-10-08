@@ -8,6 +8,8 @@ use Factorial\TwentyCrm\Http\HttpClientInterface;
 
 /**
  * Abstract base class for collections with pagination info and lazy loading.
+ *
+ * @phpstan-consistent-constructor
  */
 abstract class AbstractCollection implements \Iterator, \Countable
 {
@@ -180,6 +182,28 @@ abstract class AbstractCollection implements \Iterator, \Countable
      * @return array
      */
     abstract public function toArray(): array;
+
+    /**
+     * Create collection from API response.
+     *
+     * @param array $response
+     *   The API response data.
+     * @param \Factorial\TwentyCrm\Http\HttpClientInterface|null $httpClient
+     *   HTTP client for lazy loading.
+     * @param mixed $originalFilter
+     *   Original filter for pagination.
+     * @param mixed $originalSearchOptions
+     *   Original search options for pagination.
+     *
+     * @return static
+     *   The collection instance.
+     */
+    abstract public static function fromApiResponse(
+        array $response,
+        $httpClient = null,
+        $originalFilter = null,
+        $originalSearchOptions = null
+    ): static;
 
     /**
      * Extract pagination info from API response.

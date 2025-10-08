@@ -21,7 +21,7 @@ class ContactCollection extends AbstractCollection
      * @param mixed $originalSearchOptions
      *   Original search options for pagination.
      *
-     * @return self
+     * @return static
      *   The ContactCollection instance.
      */
     public static function fromApiResponse(
@@ -29,7 +29,7 @@ class ContactCollection extends AbstractCollection
         $httpClient = null,
         $originalFilter = null,
         $originalSearchOptions = null
-    ): self {
+    ): static {
         $contacts = [];
 
         // Handle Twenty CRM REST API response structure based on OpenAPI spec
@@ -47,7 +47,7 @@ class ContactCollection extends AbstractCollection
 
         $paginationInfo = self::extractPaginationInfo($response);
 
-        return new self(
+        return new static(
             items: $contacts,
             total: $paginationInfo['total'] ?: count($contacts),
             page: $paginationInfo['page'],

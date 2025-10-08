@@ -11,6 +11,9 @@ phpunit.xml
 # PHP CS Fixer
 .php-cs-fixer.cache
 
+# PHPStan
+/var/
+
 # Composer
 /vendor/
 composer.lock
