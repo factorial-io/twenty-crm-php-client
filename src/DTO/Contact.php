@@ -20,8 +20,8 @@ class Contact {
    *   The contact first name.
    * @param string|null $lastName
    *   The contact last name.
-   * @param string|null $phone
-   *   The contact phone number.
+   * @param \Factorial\TwentyCrm\DTO\PhoneCollection|null $phones
+   *   The contact phone collection.
    * @param string|null $jobTitle
    *   The contact job title.
    * @param string|null $companyId
@@ -38,7 +38,7 @@ class Contact {
     private ?string $email = null,
     private ?string $firstName = null,
     private ?string $lastName = null,
-    private ?string $phone = null,
+    private ?PhoneCollection $phones = null,
     private ?string $jobTitle = null,
     private ?string $companyId = null,
     private array $customFields = [],
@@ -67,24 +67,29 @@ class Contact {
     } elseif (isset($data['emails']['additionalEmails'][0])) {
       $email = $data['emails']['additionalEmails'][0];
     }
-    
-    // Extract phone from phones object (primaryPhoneNumber or first phone)
-    $phone = null;
-    if (isset($data['phones']['primaryPhoneNumber'])) {
-      $phone = $data['phones']['primaryPhoneNumber'];
-    } elseif (isset($data['phones']['additionalPhones'][0])) {
-      $phone = $data['phones']['additionalPhones'][0];
+
+    // Extract phones collection
+    $phones = null;
+    if (isset($data['phones']) && is_array($data['phones'])) {
+      $phones = PhoneCollection::fromArray($data['phones']);
     }
-    
+
     // Extract names from name object
     $firstName = $data['name']['firstName'] ?? null;
     $lastName = $data['name']['lastName'] ?? null;
-    
+
     // Extract job title
     $jobTitle = $data['jobTitle'] ?? null;
     
-    // Extract standard fields for Twenty CRM
-    $standardFields = ['id', 'emails', 'phones', 'name', 'companyId', 'createdAt', 'updatedAt', 'deletedAt', 'jobTitle', 'city', 'avatarUrl'];
+    // Extract standard fields for Twenty CRM (including read-only fields)
+    $standardFields = [
+      'id', 'emails', 'phones', 'name', 'companyId', 'createdAt', 'updatedAt', 'deletedAt',
+      'jobTitle', 'city', 'avatarUrl', 'position', 'createdBy', 'searchVector', 'lastActivityDate',
+      'country', 'town', 'contactAddress', 'hubspotId', 'industry', 'mobilePhones',
+      'numberOfTimesContacted', 'seniority', 'ownerId', 'leadSource', 'lifecycleStage',
+      'originalTrafficSource', 'recordSource', 'leadStatus', 'campaignTmp', 'outreachId',
+      'linkedinLink', 'xLink'
+    ];
     $customFields = array_diff_key($data, array_flip($standardFields));
     
     return new self(
@@ -92,7 +97,7 @@ class Contact {
       email: $email,
       firstName: $firstName,
       lastName: $lastName,
-      phone: $phone,
+      phones: $phones,
       jobTitle: $jobTitle,
       companyId: $data['companyId'] ?? null,
       customFields: $customFields,
@@ -114,11 +119,11 @@ class Contact {
     if ($this->email !== null) {
       $data['emails'] = ['primaryEmail' => $this->email];
     }
-    
-    if ($this->phone !== null) {
-      $data['phones'] = ['primaryPhoneNumber' => $this->phone];
+
+    if ($this->phones !== null && !$this->phones->isEmpty()) {
+      $data['phones'] = $this->phones->toArray();
     }
-    
+
     if ($this->firstName !== null || $this->lastName !== null) {
       $data['name'] = [
         'firstName' => $this->firstName,
@@ -167,8 +172,17 @@ class Contact {
     return trim(($this->firstName ?? '') . ' ' . ($this->lastName ?? ''));
   }
 
+  public function getPhones(): ?PhoneCollection {
+    return $this->phones;
+  }
+
+  /**
+   * Get primary phone number as string (for backward compatibility).
+   *
+   * @return string|null
+   */
   public function getPhone(): ?string {
-    return $this->phone;
+    return $this->phones?->getPrimaryNumber();
   }
 
   public function getJobTitle(): ?string {
@@ -217,8 +231,23 @@ class Contact {
     return $this;
   }
 
+  public function setPhones(?PhoneCollection $phones): self {
+    $this->phones = $phones;
+    return $this;
+  }
+
+  /**
+   * Set primary phone number from string (for backward compatibility).
+   *
+   * @param string|null $phone
+   * @return self
+   */
   public function setPhone(?string $phone): self {
-    $this->phone = $phone;
+    if ($phone === null) {
+      $this->phones = null;
+    } else {
+      $this->phones = new PhoneCollection(new Phone($phone));
+    }
     return $this;
   }
 
