@@ -6,6 +6,10 @@ namespace Factorial\TwentyCrm\Tests\Integration;
 
 use Factorial\TwentyCrm\DTO\Contact;
 use Factorial\TwentyCrm\DTO\ContactSearchFilter;
+use Factorial\TwentyCrm\DTO\Link;
+use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\DTO\Phone;
+use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
@@ -321,5 +325,73 @@ class ContactServiceTest extends IntegrationTestCase
                 $this->trackResource('contact', $contact->getId());
             }
         }
+    }
+
+    public function testCreateContactWithMobilePhonesAndLinks(): void
+    {
+        $this->requireClient();
+
+        // Create comprehensive contact with mobile phones and social links
+        $mobilePhones = new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '9876543210',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
+        );
+
+        $linkedInLink = new LinkCollection(
+            primaryLink: new Link(
+                url: 'https://linkedin.com/in/testuser',
+                label: 'Test User'
+            )
+        );
+
+        $xLink = new LinkCollection(
+            primaryLink: new Link(
+                url: 'https://x.com/testuser',
+                label: '@testuser'
+            )
+        );
+
+        $contact = new Contact(
+            email: $this->generateTestEmail(),
+            firstName: $this->generateTestName('FullContact'),
+            lastName: 'Test',
+            jobTitle: 'Senior Developer',
+            mobilePhones: $mobilePhones,
+            linkedInLink: $linkedInLink,
+            xLink: $xLink
+        );
+
+        $created = $this->client->contacts()->create($contact);
+        $this->trackResource('contact', $created->getId());
+
+        // Verify all fields were created
+        $this->assertNotNull($created->getId());
+        $this->assertEquals($contact->getEmail(), $created->getEmail());
+        $this->assertEquals('Senior Developer', $created->getJobTitle());
+
+        // Verify mobile phones
+        $this->assertNotNull($created->getMobilePhones());
+        $createdMobile = $created->getMobilePhones()->getPrimaryPhone();
+        $this->assertNotNull($createdMobile);
+        $this->assertStringContainsString('9876543210', $createdMobile->getNumber());
+        $this->assertEquals('US', $createdMobile->getCountryCode());
+        $this->assertEquals('+1', $createdMobile->getCallingCode());
+
+        // Verify LinkedIn link
+        $this->assertNotNull($created->getLinkedInLink());
+        $createdLinkedIn = $created->getLinkedInLink()->getPrimaryLink();
+        $this->assertNotNull($createdLinkedIn);
+        $this->assertEquals('https://linkedin.com/in/testuser', $createdLinkedIn->getUrl());
+        $this->assertEquals('Test User', $createdLinkedIn->getLabel());
+
+        // Verify X link
+        $this->assertNotNull($created->getXLink());
+        $createdX = $created->getXLink()->getPrimaryLink();
+        $this->assertNotNull($createdX);
+        $this->assertEquals('https://x.com/testuser', $createdX->getUrl());
+        $this->assertEquals('@testuser', $createdX->getLabel());
     }
 }

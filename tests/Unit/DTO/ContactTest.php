@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Tests\Unit\DTO;
 
 use Factorial\TwentyCrm\DTO\Contact;
+use Factorial\TwentyCrm\DTO\Link;
+use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\DTO\Phone;
+use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\Tests\TestCase;
 
 class ContactTest extends TestCase
@@ -183,5 +187,126 @@ class ContactTest extends TestCase
 
         $array = $contact->toArray();
         $this->assertEquals('test-789', $array['id']);
+    }
+
+    public function testMobilePhones(): void
+    {
+        $mobilePhones = new PhoneCollection(
+            primaryPhone: new Phone('+15551234567', 'US', '+1')
+        );
+
+        $contact = new Contact(
+            firstName: 'John',
+            lastName: 'Doe',
+            mobilePhones: $mobilePhones
+        );
+
+        $this->assertNotNull($contact->getMobilePhones());
+        $this->assertEquals('+15551234567', $contact->getMobilePhone());
+
+        // Test setter
+        $contact->setMobilePhone('+15559876543');
+        $this->assertStringContainsString('5559876543', $contact->getMobilePhone());
+    }
+
+    public function testLinkedInLink(): void
+    {
+        $linkedInLink = new LinkCollection(
+            primaryLink: new Link('https://linkedin.com/in/johndoe', 'John Doe')
+        );
+
+        $contact = new Contact(
+            firstName: 'John',
+            lastName: 'Doe',
+            linkedInLink: $linkedInLink
+        );
+
+        $this->assertNotNull($contact->getLinkedInLink());
+        $this->assertEquals('https://linkedin.com/in/johndoe', $contact->getLinkedInUrl());
+
+        // Test setter
+        $contact->setLinkedInUrl('https://linkedin.com/in/janedoe', 'Jane Doe');
+        $this->assertEquals('https://linkedin.com/in/janedoe', $contact->getLinkedInUrl());
+    }
+
+    public function testXLink(): void
+    {
+        $xLink = new LinkCollection(
+            primaryLink: new Link('https://x.com/johndoe', '@johndoe')
+        );
+
+        $contact = new Contact(
+            firstName: 'John',
+            lastName: 'Doe',
+            xLink: $xLink
+        );
+
+        $this->assertNotNull($contact->getXLink());
+        $this->assertEquals('https://x.com/johndoe', $contact->getXUrl());
+
+        // Test setter
+        $contact->setXUrl('https://x.com/janedoe', '@janedoe');
+        $this->assertEquals('https://x.com/janedoe', $contact->getXUrl());
+    }
+
+    public function testFromArrayWithMobilePhonesAndLinks(): void
+    {
+        $data = [
+            'name' => [
+                'firstName' => 'Test',
+                'lastName' => 'User',
+            ],
+            'emails' => [
+                'primaryEmail' => 'test@example.com',
+            ],
+            'mobilePhones' => [
+                'primaryPhoneNumber' => '5551234567',
+                'primaryPhoneCountryCode' => 'US',
+                'primaryPhoneCallingCode' => '+1',
+            ],
+            'linkedinLink' => [
+                'primaryLinkUrl' => 'https://linkedin.com/in/testuser',
+                'primaryLinkLabel' => 'Test User',
+            ],
+            'xLink' => [
+                'primaryLinkUrl' => 'https://x.com/testuser',
+                'primaryLinkLabel' => '@testuser',
+            ],
+        ];
+
+        $contact = Contact::fromArray($data);
+
+        $this->assertNotNull($contact->getMobilePhones());
+        $this->assertStringContainsString('5551234567', $contact->getMobilePhone());
+
+        $this->assertNotNull($contact->getLinkedInLink());
+        $this->assertEquals('https://linkedin.com/in/testuser', $contact->getLinkedInUrl());
+
+        $this->assertNotNull($contact->getXLink());
+        $this->assertEquals('https://x.com/testuser', $contact->getXUrl());
+    }
+
+    public function testToArrayWithMobilePhonesAndLinks(): void
+    {
+        $contact = new Contact(
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com'
+        );
+
+        $contact->setMobilePhone('+15551234567');
+        $contact->setLinkedInUrl('https://linkedin.com/in/johndoe', 'John Doe');
+        $contact->setXUrl('https://x.com/johndoe', '@johndoe');
+
+        $array = $contact->toArray();
+
+        $this->assertArrayHasKey('mobilePhones', $array);
+        $this->assertStringContainsString('555', $array['mobilePhones']['primaryPhoneNumber']);
+
+        $this->assertArrayHasKey('linkedinLink', $array);
+        $this->assertEquals('https://linkedin.com/in/johndoe', $array['linkedinLink']['primaryLinkUrl']);
+
+        $this->assertArrayHasKey('xLink', $array);
+        $this->assertEquals('https://x.com/johndoe', $array['xLink']['primaryLinkUrl']);
     }
 }
