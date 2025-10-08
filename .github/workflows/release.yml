@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, json
+        coverage: none
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-dev
+
+    - name: Get the version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get previous tag
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | sed -n '2p')
+
+        if [ -z "$PREVIOUS_TAG" ]; then
+          echo "No previous tag found, using all commits"
+          PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+        fi
+
+        # Generate changelog from commits
+        echo "## Changes in ${{ steps.get_version.outputs.VERSION }}" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+
+        git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges >> RELEASE_NOTES.md
+
+        # Update CHANGELOG.md
+        if [ ! -f CHANGELOG.md ]; then
+          echo "# Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+        fi
+
+        # Prepend new version to changelog
+        {
+          head -n 3 CHANGELOG.md
+          echo ""
+          echo "## [${{ steps.get_version.outputs.VERSION }}] - $(date +%Y-%m-%d)"
+          echo ""
+          git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" --no-merges
+          echo ""
+          tail -n +4 CHANGELOG.md
+        } > CHANGELOG.md.tmp
+        mv CHANGELOG.md.tmp CHANGELOG.md
+
+    - name: Commit changelog
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add CHANGELOG.md
+        git commit -m "docs: update changelog for ${{ steps.get_version.outputs.VERSION }}" || echo "No changes to commit"
+        git push origin HEAD:main || echo "Failed to push changelog update"
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: ${{ contains(steps.get_version.outputs.VERSION, '-') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
