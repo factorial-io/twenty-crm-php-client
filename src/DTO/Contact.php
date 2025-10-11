@@ -32,6 +32,8 @@ class Contact
      *   The contact job title.
      * @param string|null $companyId
      *   The associated company ID.
+     * @param string|null $leadSource
+     *   The lead source.
      * @param array $customFields
      *   Custom field values.
      * @param \DateTimeInterface|null $createdAt
@@ -50,6 +52,7 @@ class Contact
         private ?LinkCollection $xLink = null,
         private ?string $jobTitle = null,
         private ?string $companyId = null,
+        private ?string $leadSource = null,
         private array $customFields = [],
         private ?\DateTimeInterface $createdAt = null,
         private ?\DateTimeInterface $updatedAt = null,
@@ -110,6 +113,9 @@ class Contact
         // Extract job title
         $jobTitle = $data['jobTitle'] ?? null;
 
+        // Extract lead source
+        $leadSource = $data['leadSource'] ?? null;
+
         // Extract standard fields for Twenty CRM (including read-only fields)
         $standardFields = [
           'id', 'emails', 'phones', 'name', 'companyId', 'createdAt', 'updatedAt', 'deletedAt',
@@ -132,6 +138,7 @@ class Contact
             xLink: $xLink,
             jobTitle: $jobTitle,
             companyId: $data['companyId'] ?? null,
+            leadSource: $leadSource,
             customFields: $customFields,
             createdAt: $createdAt,
             updatedAt: $updatedAt,
@@ -182,6 +189,10 @@ class Contact
 
         if ($this->companyId !== null) {
             $data['companyId'] = $this->companyId;
+        }
+
+        if ($this->leadSource !== null) {
+            $data['leadSource'] = $this->leadSource;
         }
 
         // Add custom fields
@@ -290,6 +301,11 @@ class Contact
     public function getCompanyId(): ?string
     {
         return $this->companyId;
+    }
+
+    public function getLeadSource(): ?string
+    {
+        return $this->leadSource;
     }
 
     public function getCustomFields(): array
@@ -450,6 +466,13 @@ class Contact
     public function setCompanyId(?string $companyId): self
     {
         $this->companyId = $companyId;
+
+        return $this;
+    }
+
+    public function setLeadSource(?string $leadSource): self
+    {
+        $this->leadSource = $leadSource;
 
         return $this;
     }
