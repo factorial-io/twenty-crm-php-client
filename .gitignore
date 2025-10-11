@@ -28,3 +28,7 @@ composer.lock
 # OS
 .DS_Store
 Thumbs.db
+
+# Twenty CRM OpenAPI specs (instance-specific)
+docs/core.json
+docs/metadata.json
