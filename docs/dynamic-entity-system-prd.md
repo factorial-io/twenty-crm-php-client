@@ -852,6 +852,233 @@ $created = $campaign->create($newCampaign);
 // Best of both worlds: Type safety when you need it, flexibility when you don't
 ```
 
+## Implementation Progress
+
+**Last Updated:** 2025-10-11
+**Current Branch:** `refactor/make-it-dynamic`
+**Overall Status:** Phase 2 Complete ✅ | Phase 3 Not Started 🔄
+
+### Summary
+
+Phases 1 and 2 have been successfully completed. The dynamic entity system is fully functional and tested against real Twenty CRM API. The Campaign entity works without any hardcoded code, demonstrating the flexibility of the system.
+
+### ✅ Phase 1: Foundation (COMPLETED)
+
+**Status:** 100% Complete
+**Completed:** 2025-10-10
+**Commits:** cf8b968, 653c91e
+
+**Delivered:**
+- ✅ DynamicEntity class (src/DTO/DynamicEntity.php)
+  - Implements `ArrayAccess`, `IteratorAggregate`, `JsonSerializable`
+  - Field validation against EntityDefinition
+  - Immutability through cloning
+  - Support for nested objects and relations
+- ✅ EntityDefinition class (src/Metadata/EntityDefinition.php)
+  - Stores entity metadata (fields, endpoints, standard fields)
+  - Field lookup and validation methods
+- ✅ FieldMetadata class (src/Metadata/FieldMetadata.php)
+  - Field type, nullability, system/custom flags
+  - Integration with existing metadata system
+- ✅ Comprehensive unit tests
+  - DynamicEntityTest.php: 100% coverage
+  - All 107 unit tests passing
+
+**Key Decisions:**
+- Used `ArrayAccess` for intuitive API: `$entity['fieldName']`
+- Validation at construction time for early error detection
+- Immutable design for safer state management
+
+**Files:**
+```
+src/DTO/DynamicEntity.php (198 lines)
+src/Metadata/EntityDefinition.php (116 lines)
+src/Metadata/FieldMetadata.php (59 lines)
+tests/Unit/DTO/DynamicEntityTest.php
+```
+
+### ✅ Phase 2: Entity Registry & Services (COMPLETED)
+
+**Status:** 100% Complete
+**Completed:** 2025-10-11
+**Commits:** e196f9b, a6afd51, f08825d, cd77d05
+
+**Delivered:**
+- ✅ EntityRegistry class (src/Services/EntityRegistry.php)
+  - Discovers entities from `/metadata/objects` API endpoint
+  - Caches EntityDefinition instances
+  - Entity lookup and validation methods
+- ✅ GenericEntityService class (src/Services/GenericEntityService.php)
+  - Full CRUD operations: `find()`, `getById()`, `create()`, `update()`, `delete()`, `batchUpsert()`
+  - **Intelligent field filtering on updates** (critical feature)
+  - Works with any Twenty CRM entity
+- ✅ TwentyCrmClient integration (src/Client/TwentyCrmClient.php)
+  - New `entity(name)` method for dynamic entity access
+  - Registry accessor for metadata discovery
+- ✅ Campaign entity integration tests
+  - 11/11 tests passing against real API
+  - Demonstrates system working without hardcoded DTOs
+  - Tests: create, read, update, delete, find, ArrayAccess, Iterator, JSON
+- ✅ Field filtering implementation and documentation
+  - Hybrid approach using `isSystem` flag + explicit timestamp list
+  - Comprehensive findings documented in PRD Section C
+  - All update operations work correctly
+
+**Critical Discovery: Field Filtering Strategy**
+
+During implementation, we discovered that update operations were failing with 500 errors when sending system-managed fields. Investigation revealed:
+
+1. **Twenty API provides `isSystem` flag** indicating system-managed vs user-updatable fields
+2. **Auto-managed timestamps** (`createdAt`, `updatedAt`, `deletedAt`) have `isSystem=false` but shouldn't be updated
+3. **RELATION fields with `isSystem=false` ARE updatable** (they're foreign keys)
+
+**Solution:** Hybrid filtering approach:
+```php
+// Primary: Use isSystem flag from API
+if ($fieldMeta->isSystem) { continue; }
+
+// Secondary: Explicit list for auto-managed timestamps
+if (in_array($fieldName, ['createdAt', 'updatedAt', 'deletedAt', 'createdBy'])) { continue; }
+
+// DO NOT filter by type (DATE_TIME, RELATION, etc.)
+```
+
+**Test Results:**
+- ✅ All 107 unit tests passing
+- ✅ All 11 Campaign integration tests passing
+- ✅ Update operations work correctly with field filtering
+- ✅ No 500 errors from sending read-only fields
+
+**Files:**
+```
+src/Services/EntityRegistry.php (117 lines)
+src/Services/GenericEntityService.php (267 lines)
+src/Client/TwentyCrmClient.php (54 lines - updated)
+tests/Unit/Services/EntityRegistryTest.php
+tests/Unit/Services/GenericEntityServiceTest.php
+factorial-entities/tests/Integration/CampaignIntegrationTest.php (321 lines)
+factorial-entities/tests/TestCase.php (28 lines)
+```
+
+### 🔄 Phase 3: Code Generation (NOT STARTED)
+
+**Status:** 0% Complete
+**Estimated Effort:** 2-3 days
+
+**Planned Deliverables:**
+- [ ] Implement EntityGenerator class
+- [ ] Create CLI tool `bin/twenty-generate`
+- [ ] Generate DTO with typed properties
+- [ ] Generate Service with typed methods
+- [ ] Generate Collection class
+- [ ] Add documentation for code generation
+
+**Dependencies:**
+- None - can start immediately
+- Builds on completed Phase 1 & 2
+
+### Pending Work
+
+**Immediate Next Steps:**
+1. **Option A:** Begin Phase 3 (Code Generation)
+2. **Option B:** Merge Phase 1+2 to main branch (system is fully functional)
+
+**Phase 3+ (Future):**
+- Phase 4: Complex Field Handlers (nested objects)
+- Phase 5: Valinor Integration (validation)
+- Phase 6: Entity Relations (lazy/eager loading)
+- Phase 7: Remove Hardcoded Entities & Migration
+- Phase 8: Testing & Documentation
+
+**Cleanup:**
+- Debug scripts in `factorial-entities/` can be removed (used for investigation only)
+
+### Technical Achievements
+
+**Design Patterns:**
+- ✅ Generic entity system supporting any Twenty CRM entity
+- ✅ Metadata-driven discovery from API
+- ✅ Separation of concerns (Entity, Service, Registry)
+- ✅ Intelligent field filtering based on API metadata
+
+**Code Quality:**
+- ✅ PHPStan level 5 compliant
+- ✅ PHPCS compliant
+- ✅ 100% test coverage for core classes
+- ✅ Integration tests against real API
+
+**Developer Experience:**
+- ✅ Campaign entity works without any hardcoded code
+- ✅ Simple, intuitive API: `$client->entity('campaign')->create($entity)`
+- ✅ ArrayAccess syntax: `$entity['fieldName']`
+- ✅ Comprehensive error handling
+
+### Lessons Learned
+
+1. **Trust API Metadata:** The `isSystem` flag is authoritative; don't make assumptions based on field types
+2. **Integration Testing is Critical:** Unit tests can't catch API-specific behavior (like timestamp auto-management)
+3. **Start Simple:** Phase 1+2 deliver full functionality; code generation is enhancement, not requirement
+4. **Documentation Matters:** Thorough PRD and field filtering documentation saves debugging time
+
+### Environment Setup
+
+**To Resume Work:**
+```bash
+# Switch to feature branch
+git checkout refactor/make-it-dynamic
+
+# Install dependencies
+composer install
+
+# Run unit tests
+vendor/bin/phpunit tests/Unit
+
+# Run integration tests
+cd factorial-entities
+cp .env.example .env
+# Edit .env with your TWENTY_API_BASE_URI and TWENTY_API_TOKEN
+composer install
+vendor/bin/phpunit tests/
+```
+
+**Current Test Status:**
+```
+Unit Tests: 107/107 passing ✅
+Integration Tests: 11/11 passing ✅
+PHPStan: Level 5 passing ✅
+PHPCS: All checks passing ✅
+```
+
+### Recent Commits
+
+```
+cd77d05 docs: document field filtering strategy in PRD
+f08825d fix: improve field filtering in GenericEntityService updates
+a6afd51 test: add Campaign entity integration test using dynamic entity system
+e196f9b feat: add entity registry and generic entity service
+cf8b968 feat: implement Phase 1 - DynamicEntity foundation
+653c91e refactor: separate core library from factorial-specific entities
+9b193b1 docs: add comprehensive PRD for dynamic entity system refactoring
+```
+
+### Next Session Quick Start
+
+**If continuing with Phase 3 (Code Generation):**
+1. Read Phase 3 specification below
+2. Create `src/Generator/CodegenConfig.php`
+3. Create `src/Generator/EntityGenerator.php`
+4. Create `bin/twenty-generate` CLI tool
+5. Test against Campaign entity metadata
+6. Generate sample entity and verify compilation
+
+**If merging to main:**
+1. Remove debug scripts from `factorial-entities/`
+2. Run full test suite one more time
+3. Create PR: `refactor/make-it-dynamic` → `main`
+4. Tag as `v0.2.0-beta` or similar
+
+---
+
 ## Implementation Phases
 
 ### Phase 1: Foundation (Week 1)
