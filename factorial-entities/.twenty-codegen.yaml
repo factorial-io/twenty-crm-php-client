@@ -1,0 +1,43 @@
+# Twenty CRM Code Generation Configuration (YAML format)
+#
+# This file configures the entity code generator for Factorial's
+# Twenty CRM instance.
+#
+# Usage:
+#   vendor/bin/twenty-generate --config=.twenty-codegen.yaml
+#
+# Or simply:
+#   vendor/bin/twenty-generate
+#   (will auto-detect .twenty-codegen.yaml or .twenty-codegen.php)
+
+# Target namespace for generated classes
+namespace: Factorial\TwentyCrm\Entities
+
+# Output directory (relative to this file)
+output_dir: src
+
+# Twenty CRM API configuration
+# Option 1: Use ${VAR_NAME} syntax to reference environment variables (requires .env file)
+# api_url: ${TWENTY_API_BASE_URI}
+# api_token: ${TWENTY_API_TOKEN}
+
+# Option 2: Hard-code values (for testing - DO NOT commit real tokens!)
+api_url: https://factorial.twenty.com/rest/
+api_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTU1ZTdlYi1iNzM0LTQ3N2YtYTYwNy03NmM2NDc4NjlhMTUiLCJ0eXBlIjoiQVBJX0tFWSIsIndvcmtzcGFjZUlkIjoiMDE1NWU3ZWItYjczNC00NzdmLWE2MDctNzZjNjQ3ODY5YTE1IiwiaWF0IjoxNzU0MzgwNzc0LCJleHAiOjQ5MDc5ODA3NzMsImp0aSI6ImEwYzU0YmMxLWEyODktNGUwOS1hMjRjLTM2YTMzMmM2YmU5MyJ9.evxCBgYX3w3xgMBn4FMlNSp7AKnkQkyDvdkw27oaaho
+
+# Entities to generate
+entities:
+  - person      # Standard entity (Contact in v0.x)
+  - company     # Standard entity
+  - campaign    # Custom entity (Factorial-specific)
+
+# Code generation options
+options:
+  # Overwrite existing files without prompting
+  overwrite: true
+
+  # Generate service classes (not implemented yet)
+  generate_services: false
+
+  # Generate collection classes (not implemented yet)
+  generate_collections: false

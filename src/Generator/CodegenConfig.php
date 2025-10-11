@@ -32,9 +32,11 @@ class CodegenConfig
     }
 
     /**
-     * Load configuration from a PHP file.
+     * Load configuration from a file (PHP or YAML).
      *
-     * Expected file format:
+     * Supports both .php and .yaml/.yml configuration files.
+     *
+     * PHP format:
      * ```php
      * return [
      *     'namespace' => 'MyApp\TwentyCrm\Entities',
@@ -49,7 +51,22 @@ class CodegenConfig
      * ];
      * ```
      *
-     * @param string $path Path to configuration file
+     * YAML format:
+     * ```yaml
+     * namespace: MyApp\TwentyCrm\Entities
+     * output_dir: src/TwentyCrm/Entities
+     * api_url: https://my-twenty.example.com/rest/
+     * api_token: ${TWENTY_API_TOKEN}
+     * entities:
+     *   - person
+     *   - company
+     *   - campaign
+     * options:
+     *   overwrite: true
+     *   generate_services: true
+     * ```
+     *
+     * @param string $path Path to configuration file (.php, .yaml, or .yml)
      * @return self
      * @throws \InvalidArgumentException If file doesn't exist or is invalid
      */
@@ -59,12 +76,77 @@ class CodegenConfig
             throw new \InvalidArgumentException("Config file not found: {$path}");
         }
 
+        // Determine file type by extension
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        if ($extension === 'php') {
+            $config = self::loadPhpConfig($path);
+        } elseif (in_array($extension, ['yaml', 'yml'], true)) {
+            $config = self::loadYamlConfig($path);
+        } else {
+            throw new \InvalidArgumentException(
+                "Unsupported config file format: {$extension}. Use .php, .yaml, or .yml"
+            );
+        }
+
+        return self::fromArray($config);
+    }
+
+    /**
+     * Load configuration from a PHP file.
+     *
+     * @param string $path Path to PHP config file
+     * @return array<string, mixed>
+     * @throws \InvalidArgumentException If file is invalid
+     */
+    private static function loadPhpConfig(string $path): array
+    {
         $config = require $path;
 
         if (!is_array($config)) {
-            throw new \InvalidArgumentException("Config file must return an array: {$path}");
+            throw new \InvalidArgumentException("PHP config file must return an array: {$path}");
         }
 
+        return $config;
+    }
+
+    /**
+     * Load configuration from a YAML file.
+     *
+     * @param string $path Path to YAML config file
+     * @return array<string, mixed>
+     * @throws \InvalidArgumentException If file is invalid
+     */
+    private static function loadYamlConfig(string $path): array
+    {
+        if (!class_exists(\Symfony\Component\Yaml\Yaml::class)) {
+            throw new \RuntimeException(
+                'Symfony YAML component is required for YAML config files. '
+                . 'Install it with: composer require symfony/yaml'
+            );
+        }
+
+        $config = \Symfony\Component\Yaml\Yaml::parseFile($path);
+
+        if (!is_array($config)) {
+            throw new \InvalidArgumentException("YAML config file must contain a mapping: {$path}");
+        }
+
+        // Process environment variable substitution (${VAR_NAME})
+        $config = self::processEnvironmentVariables($config);
+
+        return $config;
+    }
+
+    /**
+     * Create configuration from an array.
+     *
+     * @param array<string, mixed> $config Configuration array
+     * @return self
+     * @throws \InvalidArgumentException If required config is missing
+     */
+    private static function fromArray(array $config): self
+    {
         $apiToken = $config['api_token'] ?? null;
         if (empty($apiToken)) {
             throw new \InvalidArgumentException(
@@ -81,6 +163,27 @@ class CodegenConfig
             entities: $config['entities'] ?? [],
             options: $config['options'] ?? [],
         );
+    }
+
+    /**
+     * Process environment variable substitution in config values.
+     *
+     * Replaces ${VAR_NAME} with the value of the environment variable.
+     *
+     * @param array<string, mixed> $config Configuration array
+     * @return array<string, mixed> Processed configuration
+     */
+    private static function processEnvironmentVariables(array $config): array
+    {
+        array_walk_recursive($config, function (&$value) {
+            if (is_string($value) && preg_match('/^\$\{([A-Z_][A-Z0-9_]*)\}$/', $value, $matches)) {
+                $envVar = $matches[1];
+                $envValue = getenv($envVar);
+                $value = $envValue !== false ? $envValue : $value;
+            }
+        });
+
+        return $config;
     }
 
     /**

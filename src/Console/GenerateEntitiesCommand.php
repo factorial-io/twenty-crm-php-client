@@ -213,6 +213,11 @@ HELP
 
         if ($configFile) {
             $io->writeln("Loading configuration from: <comment>{$configFile}</comment>");
+
+            // Load .env file if it exists in the same directory as config file
+            $configDir = realpath(dirname($configFile)) ?: dirname($configFile);
+            $this->loadEnvFile($configDir);
+
             return CodegenConfig::fromFile($configFile);
         }
 
@@ -229,6 +234,30 @@ HELP
         ];
 
         return CodegenConfig::fromOptions($options);
+    }
+
+    /**
+     * Load .env file if it exists.
+     */
+    private function loadEnvFile(string $directory): void
+    {
+        $envFile = $directory . '/.env';
+
+        if (!file_exists($envFile)) {
+            return;
+        }
+
+        // Check if Dotenv is available
+        if (!class_exists(\Dotenv\Dotenv::class)) {
+            return;
+        }
+
+        try {
+            $dotenv = \Dotenv\Dotenv::createImmutable($directory);
+            $dotenv->load();
+        } catch (\Exception $e) {
+            // Silently ignore - .env loading is optional
+        }
     }
 
     /**
