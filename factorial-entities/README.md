@@ -97,6 +97,66 @@ $created = $client->entity('person')->create($person);
 
 This package is designed to be extracted to a separate repository (`factorial-io/twenty-crm-entities`) when ready. All integration tests and entity-specific code lives here, making the core library schema-agnostic.
 
+## Testing
+
+### Running Integration Tests
+
+Integration tests demonstrate working with Twenty CRM entities using the dynamic entity system:
+
+```bash
+# Set up environment
+cp .env.example .env
+# Edit .env with your Twenty API credentials
+
+# Enable integration tests
+export TWENTY_TEST_MODE=integration
+
+# Run all integration tests
+cd factorial-entities
+../vendor/bin/phpunit
+```
+
+### Campaign Integration Test
+
+The `CampaignIntegrationTest` demonstrates using the dynamic entity system with custom entities:
+
+```php
+// Get campaign service dynamically - no hardcoded DTO needed
+$campaignService = $client->entity('campaign');
+
+// Create campaign using DynamicEntity
+$campaign = new DynamicEntity(
+    $campaignService->getDefinition(),
+    [
+        'name' => 'Q1 2025 Launch',
+        'description' => 'Product launch campaign',
+    ]
+);
+
+$created = $campaignService->create($campaign);
+
+// Access fields using get() or ArrayAccess
+echo $created->get('name');
+echo $created['name'];  // Same thing
+
+// Update campaign
+$created->set('description', 'Updated description');
+$updated = $campaignService->update($created);
+
+// Find campaigns
+$campaigns = $campaignService->find($filter, $options);
+
+// Delete campaign
+$campaignService->delete($created->getId());
+```
+
+**Key Benefits:**
+- ✅ Works with any entity (campaign, opportunity, project, etc.)
+- ✅ No code generation required
+- ✅ Full CRUD operations
+- ✅ ArrayAccess, Iterator, JSON serialization built-in
+- ✅ Entity metadata available via `getDefinition()`
+
 ## Example Code
 
 ```php
