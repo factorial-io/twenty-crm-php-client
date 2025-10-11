@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\DTO;
 
+use Factorial\TwentyCrm\FieldHandlers\FieldHandlerRegistry;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 
 /**
@@ -36,6 +37,13 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
     private array $loadedRelations = [];
 
     /**
+     * Field handler registry for complex type transformations.
+     *
+     * @var FieldHandlerRegistry|null
+     */
+    private static ?FieldHandlerRegistry $handlerRegistry = null;
+
+    /**
      * @param EntityDefinition $definition The entity definition
      * @param array<string, mixed> $data The entity data
      */
@@ -59,12 +67,37 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
     /**
      * Get a field value.
      *
+     * Automatically transforms API arrays to PHP objects (PhoneCollection, etc.)
+     * when field handlers are available.
+     *
      * @param string $fieldName The field name
      * @return mixed The field value or null if not set
      */
     public function get(string $fieldName): mixed
     {
-        return $this->data[$fieldName] ?? null;
+        $value = $this->data[$fieldName] ?? null;
+
+        if ($value === null) {
+            return null;
+        }
+
+        // Get field metadata to determine type
+        $field = $this->definition->getField($fieldName);
+
+        if (!$field) {
+            // Unknown field, return as-is
+            return $value;
+        }
+
+        $handlers = self::getHandlerRegistry();
+
+        // If we have a handler and value is an array, transform to PHP object
+        if ($handlers->hasHandler($field->type) && is_array($value)) {
+            return $handlers->fromApi($field->type, $value);
+        }
+
+        // Return as-is (already a PHP object or basic type)
+        return $value;
     }
 
     /**
@@ -104,11 +137,37 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
     /**
      * Get all data as an array.
      *
-     * @return array<string, mixed> The entity data
+     * Transforms complex PHP objects (PhoneCollection, LinkCollection, etc.)
+     * back to API array format for sending to Twenty CRM.
+     *
+     * @return array<string, mixed> The entity data in API format
      */
     public function toArray(): array
     {
-        return $this->data;
+        $result = [];
+        $handlers = self::getHandlerRegistry();
+
+        foreach ($this->data as $fieldName => $value) {
+            // Get field metadata to determine type
+            $field = $this->definition->getField($fieldName);
+
+            if (!$field) {
+                // Unknown field, pass through as-is
+                $result[$fieldName] = $value;
+                continue;
+            }
+
+            // Check if we have a handler for this field type
+            if ($handlers->hasHandler($field->type)) {
+                // Transform PHP object to API array format
+                $result[$fieldName] = $handlers->toApi($field->type, $value);
+            } else {
+                // No handler, pass through as-is
+                $result[$fieldName] = $value;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -281,5 +340,25 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
     public function jsonSerialize(): array
     {
         return $this->data;
+    }
+
+    // ====================================================================
+    // Field Handler Support
+    // ====================================================================
+
+    /**
+     * Get the shared field handler registry.
+     *
+     * Uses lazy initialization to create registry on first use.
+     *
+     * @return FieldHandlerRegistry
+     */
+    private static function getHandlerRegistry(): FieldHandlerRegistry
+    {
+        if (self::$handlerRegistry === null) {
+            self::$handlerRegistry = new FieldHandlerRegistry();
+        }
+
+        return self::$handlerRegistry;
     }
 }

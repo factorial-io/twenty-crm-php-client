@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Generator;
 
 use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\FieldHandlers\FieldHandlerRegistry;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Metadata\FieldConstants;
@@ -27,6 +28,9 @@ class EntityGenerator
 {
     private EntityRegistry $registry;
     private PsrPrinter $printer;
+    private FieldHandlerRegistry $handlers;
+    private ServiceGenerator $serviceGenerator;
+    private CollectionGenerator $collectionGenerator;
 
     public function __construct(
         private readonly CodegenConfig $config,
@@ -35,16 +39,21 @@ class EntityGenerator
         $metadataService = new MetadataService($this->httpClient);
         $this->registry = new EntityRegistry($this->httpClient, $metadataService);
         $this->printer = new PsrPrinter();
+        $this->handlers = new FieldHandlerRegistry();
+        $this->serviceGenerator = new ServiceGenerator($this->config);
+        $this->collectionGenerator = new CollectionGenerator($this->config);
     }
 
     /**
      * Generate code for a single entity.
      *
      * @param string $entityName Entity name (e.g., 'person', 'company', 'campaign')
-     * @return string Path to generated file
+     * @param bool $withService Generate service class (default: false)
+     * @param bool $withCollection Generate collection class (default: false)
+     * @return array<string, string> Map of component type => generated file path
      * @throws \RuntimeException If entity doesn't exist or generation fails
      */
-    public function generateEntity(string $entityName): string
+    public function generateEntity(string $entityName, bool $withService = false, bool $withCollection = false): array
     {
         $definition = $this->registry->getDefinition($entityName);
 
@@ -55,6 +64,37 @@ class EntityGenerator
         $this->config->ensureOutputDirectory();
 
         $className = $this->getClassName($entityName);
+        $generated = [];
+
+        // Generate entity class
+        $entityPath = $this->generateEntityFile($definition, $className);
+        $generated['entity'] = $entityPath;
+
+        // Generate collection class if requested
+        if ($withCollection) {
+            $collectionPath = $this->generateCollectionFile($definition, $className);
+            $generated['collection'] = $collectionPath;
+        }
+
+        // Generate service class if requested
+        if ($withService) {
+            $servicePath = $this->generateServiceFile($definition, $className);
+            $generated['service'] = $servicePath;
+        }
+
+        return $generated;
+    }
+
+    /**
+     * Generate entity file.
+     *
+     * @param EntityDefinition $definition
+     * @param string $className
+     * @return string Path to generated file
+     * @throws \RuntimeException If generation fails
+     */
+    private function generateEntityFile(EntityDefinition $definition, string $className): string
+    {
         $filePath = $this->getFilePath($className);
 
         // Check if file exists and overwrite option
@@ -72,16 +112,72 @@ class EntityGenerator
     }
 
     /**
+     * Generate collection file.
+     *
+     * @param EntityDefinition $definition
+     * @param string $entityClassName
+     * @return string Path to generated file
+     * @throws \RuntimeException If generation fails
+     */
+    private function generateCollectionFile(EntityDefinition $definition, string $entityClassName): string
+    {
+        $collectionClassName = $entityClassName . 'Collection';
+        $filePath = $this->getFilePath($collectionClassName);
+
+        // Check if file exists and overwrite option
+        if (file_exists($filePath) && !$this->config->hasOption('overwrite')) {
+            throw new \RuntimeException("File already exists (use --overwrite to replace): {$filePath}");
+        }
+
+        $code = $this->collectionGenerator->generateCollection($definition, $entityClassName);
+
+        if (file_put_contents($filePath, $code) === false) {
+            throw new \RuntimeException("Failed to write file: {$filePath}");
+        }
+
+        return $filePath;
+    }
+
+    /**
+     * Generate service file.
+     *
+     * @param EntityDefinition $definition
+     * @param string $entityClassName
+     * @return string Path to generated file
+     * @throws \RuntimeException If generation fails
+     */
+    private function generateServiceFile(EntityDefinition $definition, string $entityClassName): string
+    {
+        $serviceClassName = $entityClassName . 'Service';
+        $filePath = $this->getFilePath($serviceClassName);
+
+        // Check if file exists and overwrite option
+        if (file_exists($filePath) && !$this->config->hasOption('overwrite')) {
+            throw new \RuntimeException("File already exists (use --overwrite to replace): {$filePath}");
+        }
+
+        $code = $this->serviceGenerator->generateService($definition, $entityClassName);
+
+        if (file_put_contents($filePath, $code) === false) {
+            throw new \RuntimeException("Failed to write file: {$filePath}");
+        }
+
+        return $filePath;
+    }
+
+    /**
      * Generate all configured entities.
      *
-     * @return array<string, string> Map of entity name => generated file path
+     * @param bool $withService Generate service classes (default: false)
+     * @param bool $withCollection Generate collection classes (default: false)
+     * @return array<string, array<string, string>> Map of entity name => [component => path]
      */
-    public function generateAll(): array
+    public function generateAll(bool $withService = false, bool $withCollection = false): array
     {
         $generated = [];
 
         foreach ($this->config->entities as $entityName) {
-            $generated[$entityName] = $this->generateEntity($entityName);
+            $generated[$entityName] = $this->generateEntity($entityName, $withService, $withCollection);
         }
 
         return $generated;
@@ -135,6 +231,8 @@ class EntityGenerator
     /**
      * Add a getter method to the class.
      *
+     * Automatically adds use statements for collection types.
+     *
      * @param ClassType $class
      * @param string $fieldName
      * @param FieldMetadata $field
@@ -144,6 +242,11 @@ class EntityGenerator
     {
         $methodName = 'get' . $this->toPascalCase($fieldName);
         $phpType = $this->mapFieldTypeToPhp($field);
+
+        // Add use statement for complex types
+        if ($phpType !== 'mixed' && $phpType !== 'string' && $phpType !== 'int' && $phpType !== 'bool' && $phpType !== 'float' && $phpType !== 'array') {
+            $class->getNamespace()->addUse($phpType);
+        }
 
         $method = $class->addMethod($methodName);
         $method->setPublic();
@@ -156,6 +259,8 @@ class EntityGenerator
     /**
      * Add a setter method to the class.
      *
+     * Automatically adds use statements for collection types.
+     *
      * @param ClassType $class
      * @param string $fieldName
      * @param FieldMetadata $field
@@ -165,6 +270,11 @@ class EntityGenerator
     {
         $methodName = 'set' . $this->toPascalCase($fieldName);
         $phpType = $this->mapFieldTypeToPhp($field);
+
+        // Add use statement for complex types
+        if ($phpType !== 'mixed' && $phpType !== 'string' && $phpType !== 'int' && $phpType !== 'bool' && $phpType !== 'float' && $phpType !== 'array') {
+            $class->getNamespace()->addUse($phpType);
+        }
 
         $method = $class->addMethod($methodName);
         $method->setPublic();
@@ -181,11 +291,22 @@ class EntityGenerator
     /**
      * Map Twenty CRM field type to PHP type.
      *
+     * Uses FieldHandlerRegistry to determine types for complex fields.
+     * Falls back to basic types for simple fields.
+     *
      * @param FieldMetadata $field
      * @return string
      */
     private function mapFieldTypeToPhp(FieldMetadata $field): string
     {
+        // Check if we have a handler for this field type
+        if ($this->handlers->hasHandler($field->type)) {
+            $phpType = $this->handlers->getPhpType($field->type);
+            // Remove leading ? if present, we'll handle nullability separately
+            return ltrim($phpType, '?');
+        }
+
+        // Fall back to basic type mapping
         return match ($field->type) {
             'TEXT', 'EMAIL', 'PHONE', 'UUID' => 'string',
             'NUMBER', 'RATING' => 'int',
@@ -194,10 +315,6 @@ class EntityGenerator
             'SELECT' => 'string', // Enum values are strings
             'CURRENCY' => 'float',
             'RELATION' => 'mixed', // Relations are complex, use mixed for now
-            'LINKS' => 'array',
-            'PHONES' => 'array',
-            'ADDRESS' => 'array',
-            'FULL_NAME' => 'array',
             default => 'mixed',
         };
     }

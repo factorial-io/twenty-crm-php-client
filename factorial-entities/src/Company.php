@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Entities;
 
+use Factorial\TwentyCrm\DTO\Address;
 use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 
 /**
@@ -193,7 +196,7 @@ class Company extends DynamicEntity
     /**
      * Get phones.
      */
-    public function getPhones(): ?array
+    public function getPhones(): ?PhoneCollection
     {
         return $this->get('phones');
     }
@@ -201,7 +204,7 @@ class Company extends DynamicEntity
     /**
      * Set phones.
      */
-    public function setPhones(?array $value): self
+    public function setPhones(?PhoneCollection $value): self
     {
         $this->set('phones', $value);
         return $this;
@@ -210,7 +213,7 @@ class Company extends DynamicEntity
     /**
      * Get facebook.
      */
-    public function getFacebook(): ?array
+    public function getFacebook(): ?LinkCollection
     {
         return $this->get('facebook');
     }
@@ -218,7 +221,7 @@ class Company extends DynamicEntity
     /**
      * Set facebook.
      */
-    public function setFacebook(?array $value): self
+    public function setFacebook(?LinkCollection $value): self
     {
         $this->set('facebook', $value);
         return $this;
@@ -227,7 +230,7 @@ class Company extends DynamicEntity
     /**
      * Get linkedinLink.
      */
-    public function getLinkedinLink(): ?array
+    public function getLinkedinLink(): ?LinkCollection
     {
         return $this->get('linkedinLink');
     }
@@ -235,7 +238,7 @@ class Company extends DynamicEntity
     /**
      * Set linkedinLink.
      */
-    public function setLinkedinLink(?array $value): self
+    public function setLinkedinLink(?LinkCollection $value): self
     {
         $this->set('linkedinLink', $value);
         return $this;
@@ -278,7 +281,7 @@ class Company extends DynamicEntity
     /**
      * Get xLink.
      */
-    public function getXLink(): ?array
+    public function getXLink(): ?LinkCollection
     {
         return $this->get('xLink');
     }
@@ -286,7 +289,7 @@ class Company extends DynamicEntity
     /**
      * Set xLink.
      */
-    public function setXLink(?array $value): self
+    public function setXLink(?LinkCollection $value): self
     {
         $this->set('xLink', $value);
         return $this;
@@ -295,7 +298,7 @@ class Company extends DynamicEntity
     /**
      * Get address.
      */
-    public function getAddress(): ?array
+    public function getAddress(): ?Address
     {
         return $this->get('address');
     }
@@ -303,7 +306,7 @@ class Company extends DynamicEntity
     /**
      * Set address.
      */
-    public function setAddress(?array $value): self
+    public function setAddress(?Address $value): self
     {
         $this->set('address', $value);
         return $this;
@@ -506,7 +509,7 @@ class Company extends DynamicEntity
     /**
      * Get domainName.
      */
-    public function getDomainName(): array
+    public function getDomainName(): LinkCollection
     {
         return $this->get('domainName');
     }
@@ -514,7 +517,7 @@ class Company extends DynamicEntity
     /**
      * Set domainName.
      */
-    public function setDomainName(array $value): self
+    public function setDomainName(LinkCollection $value): self
     {
         $this->set('domainName', $value);
         return $this;

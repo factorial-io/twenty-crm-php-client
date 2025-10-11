@@ -1,0 +1,122 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Factorial\TwentyCrm\Entities;
+
+use Factorial\TwentyCrm\DTO\FilterInterface;
+use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Exception\ApiException;
+use Factorial\TwentyCrm\Http\HttpClientInterface;
+use Factorial\TwentyCrm\Metadata\EntityDefinition;
+use Factorial\TwentyCrm\Services\GenericEntityService;
+
+/**
+ * CompanyService (auto-generated).
+ *
+ * Provides typed access to Company CRUD operations.
+ * Wraps GenericEntityService with entity-specific types.
+ *
+ * @codingStandardsIgnoreFile
+ * @phpstan-ignore-file
+ */
+final class CompanyService
+{
+    private readonly GenericEntityService $genericService;
+    private readonly EntityDefinition $definition;
+
+    public function __construct(HttpClientInterface $httpClient, EntityDefinition $definition)
+    {
+        $this->definition = $definition;
+        $this->genericService = new GenericEntityService($httpClient, $definition);
+    }
+
+    /**
+     * Find Company entities matching filter.
+     *
+     * @param FilterInterface $filter Search filter
+     * @param SearchOptions $options Search options
+     * @return CompanyCollection
+     */
+    public function find(FilterInterface $filter, SearchOptions $options): CompanyCollection
+    {
+        $dynamicEntities = $this->genericService->find($filter, $options);
+        $entities = [];
+
+        foreach ($dynamicEntities as $dynamicEntity) {
+            $entities[] = new Company($this->definition, $dynamicEntity->toArray());
+        }
+
+        return new CompanyCollection($entities);
+    }
+
+    /**
+     * Get Company by ID.
+     *
+     * @param string $id Entity ID
+     * @return Company|null
+     */
+    public function getById(string $id): ?Company
+    {
+        $entity = $this->genericService->getById($id);
+
+        if ($entity === null) {
+            return null;
+        }
+
+        return new Company($this->definition, $entity->toArray());
+    }
+
+    /**
+     * Create a new Company.
+     *
+     * @param Company $entity Entity to create
+     * @return Company
+     */
+    public function create(Company $entity): Company
+    {
+        $created = $this->genericService->create($entity);
+        return new Company($this->definition, $created->toArray());
+    }
+
+    /**
+     * Update an existing Company.
+     *
+     * @param Company $entity Entity to update
+     * @return Company
+     */
+    public function update(Company $entity): Company
+    {
+        $updated = $this->genericService->update($entity);
+        return new Company($this->definition, $updated->toArray());
+    }
+
+    /**
+     * Delete an entity by ID.
+     *
+     * @param string $id Entity ID
+     * @return bool True if deleted, false if not found
+     */
+    public function delete(string $id): bool
+    {
+        return $this->genericService->delete($id);
+    }
+
+    /**
+     * Batch upsert multiple Company entities.
+     *
+     * @param Company[] $entities Entities to upsert
+     * @return CompanyCollection
+     */
+    public function batchUpsert(array $entities): CompanyCollection
+    {
+        $dynamicEntities = $this->genericService->batchUpsert($entities);
+        $typedEntities = [];
+
+        foreach ($dynamicEntities as $dynamicEntity) {
+            $typedEntities[] = new Company($this->definition, $dynamicEntity->toArray());
+        }
+
+        return new CompanyCollection($typedEntities);
+    }
+}

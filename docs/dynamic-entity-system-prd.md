@@ -856,11 +856,11 @@ $created = $campaign->create($newCampaign);
 
 **Last Updated:** 2025-10-11
 **Current Branch:** `refactor/make-it-dynamic`
-**Overall Status:** Phase 3 Complete ✅ | Phase 4+ Pending 🔄
+**Overall Status:** Phase 4 Complete ✅ | Phase 5+ Pending 🔄
 
 ### Summary
 
-Phases 1, 2, and 3 have been successfully completed. The dynamic entity system is fully functional with code generation capabilities. Users can now generate typed entity classes from their Twenty CRM metadata with full IDE autocomplete support. The system works with ANY Twenty instance, including custom entities like Campaign.
+Phases 1, 2, 3, and 4 have been successfully completed. The dynamic entity system is fully functional with code generation for entities, services, and collections. Complex field handling with automatic transformation is working. Users can now generate complete typed service classes from their Twenty CRM metadata with full IDE autocomplete support and proper collection types (PhoneCollection, LinkCollection, Name, Address). The system works with ANY Twenty instance, including custom entities like Campaign.
 
 ### ✅ Phase 1: Foundation (COMPLETED)
 
@@ -964,7 +964,7 @@ factorial-entities/tests/TestCase.php (28 lines)
 
 **Status:** 100% Complete
 **Completed:** 2025-10-11
-**Commits:** [to be added after commit]
+**Commits:** 6b123fc
 
 **Delivered:**
 - ✅ CodegenConfig class (src/Generator/CodegenConfig.php)
@@ -1043,24 +1043,172 @@ factorial-entities/src/Company.php (564 lines, generated)
 factorial-entities/src/Person.php (639 lines, generated)
 ```
 
+### ✅ Phase 4: Complex Field Handlers & Service Generation (COMPLETED)
+
+**Status:** 100% Complete
+**Completed:** 2025-10-11
+**Commits:** [to be added after commit]
+
+**Delivered:**
+- ✅ NestedObjectHandler interface (src/FieldHandlers/NestedObjectHandler.php)
+  - Contract for bidirectional field transformations
+  - `fromApi()` and `toApi()` methods
+  - `getPhpType()` for code generation
+- ✅ Field Handler implementations
+  - PhonesFieldHandler - Transform phones → PhoneCollection
+  - LinksFieldHandler - Transform links → LinkCollection
+  - EmailsFieldHandler - Simplify emails object → string
+  - NameFieldHandler - Transform name object → Name DTO
+  - AddressFieldHandler - Transform address → Address DTO
+- ✅ FieldHandlerRegistry class (src/FieldHandlers/FieldHandlerRegistry.php)
+  - Central registry for all field handlers
+  - `fromApi()` and `toApi()` transformation methods
+  - `getPhpType()` for type detection
+- ✅ New DTO classes
+  - Address (src/DTO/Address.php) - Structured address with helper methods
+  - Name (src/DTO/Name.php) - Structured name with getFullName()
+- ✅ ServiceGenerator class (src/Generator/ServiceGenerator.php)
+  - Generates typed service wrappers around GenericEntityService
+  - Matches ContactService/CompanyService API exactly
+  - Methods: find(), getById(), create(), update(), delete(), batchUpsert()
+- ✅ CollectionGenerator class (src/Generator/CollectionGenerator.php)
+  - Generates typed collection classes
+  - Helper methods: count(), isEmpty(), first(), getEntities()
+  - Static fromDynamicCollection() for easy conversion
+- ✅ Enhanced EntityGenerator
+  - Uses FieldHandlerRegistry for complex type detection
+  - Generates services and collections via flags
+  - Proper type hints with full namespace support
+- ✅ Automatic transformation in DynamicEntity
+  - get() method transforms arrays → PHP objects
+  - toArray() method transforms objects → API arrays
+  - Lazy handler initialization for performance
+  - **Critical for backward compatibility**
+- ✅ Generated entities regenerated with complex types
+  - Person.php: PhoneCollection, LinkCollection, Name, Address types
+  - Company.php: PhoneCollection, LinkCollection, Address types
+  - Campaign.php: Basic types (no complex fields)
+- ✅ Generated services tested successfully
+  - PersonService matches ContactService API
+  - All CRUD operations work correctly
+  - Integration test demonstrates full functionality
+
+**Key Architectural Decisions:**
+
+1. **Automatic Transformation in DynamicEntity**
+   - Field handlers transform data in get()/toArray() methods
+   - No changes needed to existing tests
+   - Backward compatible with array-based code
+   - Collection objects work seamlessly
+
+2. **Service Generation Strategy**
+   - Services wrap GenericEntityService (composition)
+   - Return typed entities and collections
+   - Convert DynamicEntity arrays to typed instances
+   - Minimal API surface for easy maintenance
+
+3. **Collection Generation**
+   - No fromDynamicCollection() dependency (removed)
+   - Services handle transformation directly
+   - Collections are simple typed array wrappers
+   - Helper methods for common operations
+
+**Generated Code Structure (9 files, 2,078 lines):**
+
+For each entity, the generator creates:
+1. **Entity class** - Typed getters/setters with collection types
+2. **Service class** - Typed CRUD operations
+3. **Collection class** - Typed collection with helpers
+
+**Example Generated Files:**
+```
+factorial-entities/src/Person.php (643 lines)
+factorial-entities/src/PersonService.php (122 lines)
+factorial-entities/src/PersonCollection.php (93 lines)
+factorial-entities/src/Company.php (567 lines)
+factorial-entities/src/CompanyService.php (122 lines)
+factorial-entities/src/CompanyCollection.php (93 lines)
+factorial-entities/src/Campaign.php (223 lines)
+factorial-entities/src/CampaignService.php (122 lines)
+factorial-entities/src/CampaignCollection.php (93 lines)
+```
+
+**Test Results:**
+```
+✓ PersonService.find() returns PersonCollection
+✓ PersonService.getById() returns Person
+✓ Person.getPhones() returns PhoneCollection
+✓ Person.getName() returns Name object
+✓ Person.getContactAddress() returns Address object
+✓ All CRUD operations work correctly
+✓ Automatic transformation between API arrays and PHP objects
+✓ API matches ContactService exactly
+```
+
+**Usage Example:**
+```php
+// Generate entities with services and collections
+php bin/twenty-generate \
+    --config=.twenty-codegen.yaml \
+    --with-services \
+    --with-collections
+
+// Use generated service (fully typed)
+$registry = $client->registry();
+$personService = new PersonService(
+    $client->getHttpClient(),
+    $registry->getDefinition('person')
+);
+
+// Find persons
+$filter = new CustomFilter(null);
+$options = new SearchOptions(limit: 10);
+$persons = $personService->find($filter, $options);  // Returns PersonCollection
+
+// Work with complex fields
+$person = $persons->first();
+$phone = $person->getPhones()->getPrimaryNumber();  // PhoneCollection
+$name = $person->getName()->getFullName();          // Name object
+$address = $person->getContactAddress()->getFormatted();  // Address object
+```
+
+**Files:**
+```
+src/FieldHandlers/NestedObjectHandler.php (69 lines)
+src/FieldHandlers/PhonesFieldHandler.php (60 lines)
+src/FieldHandlers/LinksFieldHandler.php (58 lines)
+src/FieldHandlers/EmailsFieldHandler.php (68 lines)
+src/FieldHandlers/NameFieldHandler.php (56 lines)
+src/FieldHandlers/AddressFieldHandler.php (63 lines)
+src/FieldHandlers/FieldHandlerRegistry.php (135 lines)
+src/DTO/Name.php (147 lines)
+src/DTO/Address.php (221 lines)
+src/DTO/DynamicEntity.php (modified - added transformation)
+src/Generator/ServiceGenerator.php (223 lines)
+src/Generator/CollectionGenerator.php (151 lines)
+src/Generator/EntityGenerator.php (modified - service/collection generation)
+factorial-entities/generate_with_services.php (generation script)
+factorial-entities/test_generated_service.php (integration test)
+```
+
 ### Pending Work
 
 **Immediate Next Steps:**
-1. **Option A:** Begin Phase 4 (Complex Field Handlers) - Add PhoneCollection, LinkCollection support
-2. **Option B:** Merge Phase 1+2+3 to main branch (code generation is fully functional)
-3. **Option C:** Add unit tests for code generation
+1. **Option A:** Commit Phase 4 changes and merge to main branch
+2. **Option B:** Add unit tests for field handlers and service generation
+3. **Option C:** Begin Phase 5 (Valinor Integration for validation)
 
-**Known Limitations:**
-- Complex fields (phones, emails, addresses) return `mixed` or `array` types
-- No PhoneCollection, LinkCollection, etc. in generated code
-- Users must manually work with array structures for complex fields
+**Completed in Phase 4:**
+- ✅ Complex fields (phones, emails, addresses) now return proper types
+- ✅ PhoneCollection, LinkCollection, Name, Address in generated code
+- ✅ Automatic transformation between arrays and objects
+- ✅ Service and collection generation working
 
-**Phase 4+ (Future):**
-- Phase 4: Complex Field Handlers (PhoneCollection, LinkCollection, structured types)
-- Phase 5: Valinor Integration (validation)
-- Phase 6: Entity Relations (lazy/eager loading)
-- Phase 7: Remove Hardcoded Entities & Migration
-- Phase 8: Testing & Documentation
+**Phase 5+ (Future):**
+- Phase 5: Valinor Integration (optional - for enhanced validation)
+- Phase 6: Entity Relations (lazy/eager loading for related entities)
+- Phase 7: Remove Hardcoded Entities & Migration Guide
+- Phase 8: Additional Testing & Documentation
 
 **Cleanup:**
 - Debug scripts in `factorial-entities/` can be removed (used for investigation only)

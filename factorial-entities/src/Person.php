@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Entities;
 
+use Factorial\TwentyCrm\DTO\Address;
 use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\DTO\Name;
+use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 
 /**
@@ -60,7 +64,7 @@ class Person extends DynamicEntity
     /**
      * Get emails.
      */
-    public function getEmails(): mixed
+    public function getEmails(): string
     {
         return $this->get('emails');
     }
@@ -68,7 +72,7 @@ class Person extends DynamicEntity
     /**
      * Set emails.
      */
-    public function setEmails(mixed $value): self
+    public function setEmails(string $value): self
     {
         $this->set('emails', $value);
         return $this;
@@ -119,7 +123,7 @@ class Person extends DynamicEntity
     /**
      * Get name.
      */
-    public function getName(): ?array
+    public function getName(): ?Name
     {
         return $this->get('name');
     }
@@ -127,7 +131,7 @@ class Person extends DynamicEntity
     /**
      * Set name.
      */
-    public function setName(?array $value): self
+    public function setName(?Name $value): self
     {
         $this->set('name', $value);
         return $this;
@@ -152,7 +156,7 @@ class Person extends DynamicEntity
     /**
      * Get xLink.
      */
-    public function getXLink(): ?array
+    public function getXLink(): ?LinkCollection
     {
         return $this->get('xLink');
     }
@@ -160,7 +164,7 @@ class Person extends DynamicEntity
     /**
      * Set xLink.
      */
-    public function setXLink(?array $value): self
+    public function setXLink(?LinkCollection $value): self
     {
         $this->set('xLink', $value);
         return $this;
@@ -169,7 +173,7 @@ class Person extends DynamicEntity
     /**
      * Get contactAddress.
      */
-    public function getContactAddress(): ?array
+    public function getContactAddress(): ?Address
     {
         return $this->get('contactAddress');
     }
@@ -177,7 +181,7 @@ class Person extends DynamicEntity
     /**
      * Set contactAddress.
      */
-    public function setContactAddress(?array $value): self
+    public function setContactAddress(?Address $value): self
     {
         $this->set('contactAddress', $value);
         return $this;
@@ -337,7 +341,7 @@ class Person extends DynamicEntity
     /**
      * Get mobilePhones.
      */
-    public function getMobilePhones(): ?array
+    public function getMobilePhones(): ?PhoneCollection
     {
         return $this->get('mobilePhones');
     }
@@ -345,7 +349,7 @@ class Person extends DynamicEntity
     /**
      * Set mobilePhones.
      */
-    public function setMobilePhones(?array $value): self
+    public function setMobilePhones(?PhoneCollection $value): self
     {
         $this->set('mobilePhones', $value);
         return $this;
@@ -422,7 +426,7 @@ class Person extends DynamicEntity
     /**
      * Get phones.
      */
-    public function getPhones(): array
+    public function getPhones(): PhoneCollection
     {
         return $this->get('phones');
     }
@@ -430,7 +434,7 @@ class Person extends DynamicEntity
     /**
      * Set phones.
      */
-    public function setPhones(array $value): self
+    public function setPhones(PhoneCollection $value): self
     {
         $this->set('phones', $value);
         return $this;
@@ -598,7 +602,7 @@ class Person extends DynamicEntity
     /**
      * Get linkedinLink.
      */
-    public function getLinkedinLink(): ?array
+    public function getLinkedinLink(): ?LinkCollection
     {
         return $this->get('linkedinLink');
     }
@@ -606,7 +610,7 @@ class Person extends DynamicEntity
     /**
      * Set linkedinLink.
      */
-    public function setLinkedinLink(?array $value): self
+    public function setLinkedinLink(?LinkCollection $value): self
     {
         $this->set('linkedinLink', $value);
         return $this;
