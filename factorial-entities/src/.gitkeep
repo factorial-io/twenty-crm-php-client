@@ -1,0 +1,15 @@
+# Generated entities will be placed here
+#
+# To generate entities:
+# vendor/bin/twenty-generate --config=.twenty-codegen.php
+#
+# Expected generated files:
+# - Person.php
+# - PersonService.php
+# - PersonCollection.php
+# - Company.php
+# - CompanyService.php
+# - CompanyCollection.php
+# - Campaign.php
+# - CampaignService.php
+# - CampaignCollection.php
