@@ -129,5 +129,6 @@ class FieldHandlerRegistry
         $this->register(new EmailsFieldHandler());
         $this->register(new NameFieldHandler());
         $this->register(new AddressFieldHandler());
+        $this->register(new CurrencyFieldHandler());
     }
 }

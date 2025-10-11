@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\DTO\EmailCollection;
+
 /**
  * Handler for EMAILS field type.
  *
- * Transforms between Twenty CRM emails object format and simple string.
- * Extracts primary email for simpler API usage.
+ * Transforms between Twenty CRM emails object format and EmailCollection.
  *
  * API Format:
  * ```
@@ -18,33 +19,28 @@ namespace Factorial\TwentyCrm\FieldHandlers;
  * ]
  * ```
  *
- * PHP Format: Returns primary email as string
+ * PHP Format: Returns EmailCollection object
  */
 class EmailsFieldHandler implements NestedObjectHandler
 {
-    public function fromApi(array $data): ?string
+    public function fromApi(array $data): ?EmailCollection
     {
         if (empty($data)) {
             return null;
         }
 
-        // Extract primary email
-        if (isset($data['primaryEmail']) && !empty($data['primaryEmail'])) {
-            return $data['primaryEmail'];
-        }
-
-        // Fallback to first additional email
-        if (isset($data['additionalEmails'][0])) {
-            return $data['additionalEmails'][0];
-        }
-
-        return null;
+        return EmailCollection::fromArray($data);
     }
 
     public function toApi(mixed $value): array
     {
-        if ($value === null || $value === '') {
+        if ($value === null) {
             return [];
+        }
+
+        // If it's an EmailCollection, convert to array
+        if ($value instanceof EmailCollection) {
+            return $value->toArray();
         }
 
         // If it's already an array (full emails object), pass through
@@ -52,8 +48,8 @@ class EmailsFieldHandler implements NestedObjectHandler
             return $value;
         }
 
-        // Convert string email to emails object
-        if (is_string($value)) {
+        // Convert string email to emails object (backward compatibility)
+        if (is_string($value) && $value !== '') {
             return ['primaryEmail' => $value];
         }
 
@@ -62,7 +58,7 @@ class EmailsFieldHandler implements NestedObjectHandler
 
     public function getPhpType(): string
     {
-        return '?string';
+        return '?' . EmailCollection::class;
     }
 
     public function getFieldType(): string
