@@ -12,6 +12,12 @@
  * 4. Commit generated code to version control
  */
 
+// Load .env file
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
+
 return [
     // Target namespace for generated entities
     'namespace' => 'Factorial\\TwentyCrm\\Entities',
@@ -20,7 +26,7 @@ return [
     'output_dir' => __DIR__ . '/src',
 
     // Twenty CRM API configuration
-    'api_url' => getenv('TWENTY_API_URL') ?: 'https://factorial.twenty.com/rest/',
+    'api_url' => getenv('TWENTY_API_BASE_URI') ?: 'https://factorial.twenty.com/rest/',
     'api_token' => getenv('TWENTY_API_TOKEN'),
 
     // Entities to generate

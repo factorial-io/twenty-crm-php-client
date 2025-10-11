@@ -10,6 +10,7 @@ use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
+use Factorial\TwentyCrm\Metadata\FieldConstants;
 
 /**
  * Generic entity service for CRUD operations on any Twenty CRM entity.
@@ -162,49 +163,15 @@ class GenericEntityService
      * Filter entity data to only include updatable fields.
      *
      * Removes system-managed fields that shouldn't be sent in updates.
-     * Primarily relies on the `isSystem` flag from Twenty CRM metadata API,
-     * with additional filtering for auto-managed timestamp fields.
-     *
-     * Fields filtered out:
-     * - Fields with isSystem=true (system identifiers, computed fields, etc.)
-     * - Auto-managed timestamps: createdAt, updatedAt, deletedAt
-     * - System audit fields: createdBy
+     * Uses centralized FieldConstants for consistent filtering logic.
      *
      * @param array<string, mixed> $data The entity data
      * @return array<string, mixed> Filtered data with only updatable fields
+     * @see FieldConstants::filterUpdatableFields()
      */
     private function filterUpdatableFields(array $data): array
     {
-        // Auto-managed timestamp and audit fields that should never be updated
-        // These are managed by the database/API automatically
-        $autoManagedFields = ['createdAt', 'updatedAt', 'deletedAt', 'createdBy'];
-
-        $filtered = [];
-
-        foreach ($data as $fieldName => $value) {
-            // Skip auto-managed timestamp/audit fields
-            if (in_array($fieldName, $autoManagedFields, true)) {
-                continue;
-            }
-
-            // Check if field exists in definition
-            $fieldMeta = $this->definition->getField($fieldName);
-
-            if ($fieldMeta) {
-                // Filter based on isSystem flag from API metadata
-                if ($fieldMeta->isSystem) {
-                    continue;
-                }
-            } else {
-                // Field not in definition - skip to be safe
-                continue;
-            }
-
-            // Include this field in the update
-            $filtered[$fieldName] = $value;
-        }
-
-        return $filtered;
+        return FieldConstants::filterUpdatableFields($data, $this->definition->fields);
     }
 
     /**
