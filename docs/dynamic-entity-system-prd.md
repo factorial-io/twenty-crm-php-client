@@ -1503,7 +1503,128 @@ $person = new DynamicEntity($definition, [
 $created = $client->entity('person')->create($person);
 ```
 
-### C. References
+### C. Field Filtering Strategy for Updates
+
+**Discovery:** Through implementation, we identified critical findings about which fields can be updated in Twenty CRM.
+
+#### Key Findings
+
+**1. Twenty API Provides `isSystem` Flag:**
+The `/metadata/objects` endpoint returns an `isSystem` boolean for each field, indicating whether it's system-managed or user-updatable.
+
+**Example from Campaign entity:**
+```
+id: isSystem=true (UUID) - Never updatable
+name: isSystem=false (TEXT) - User updatable
+position: isSystem=true (POSITION) - System managed
+purpose: isSystem=false (TEXT) - User updatable
+```
+
+**2. Auto-Managed Timestamps Not Marked as System:**
+Timestamp fields (`createdAt`, `updatedAt`, `deletedAt`) have `isSystem=false` but are auto-managed by the database. Attempting to update these causes 500 errors.
+
+**3. Relations Can Be Updatable:**
+`RELATION` type fields with `isSystem=false` CAN be updated to set foreign key relationships:
+- `person.company` (RELATION, isSystem=false) - Can be set to link person to company
+- `opportunity.accountOwner` (RELATION, isSystem=false) - Can be set
+- `timelineActivities` (RELATION, isSystem=true) - System managed, cannot be updated
+
+#### Implemented Filtering Strategy
+
+The `GenericEntityService.filterUpdatableFields()` method uses a **hybrid approach**:
+
+```php
+private function filterUpdatableFields(array $data): array
+{
+    // Auto-managed fields explicitly filtered
+    $autoManagedFields = ['createdAt', 'updatedAt', 'deletedAt', 'createdBy'];
+
+    foreach ($data as $fieldName => $value) {
+        // 1. Filter auto-managed timestamps/audit fields
+        if (in_array($fieldName, $autoManagedFields)) {
+            continue;
+        }
+
+        // 2. Check field metadata
+        $fieldMeta = $this->definition->getField($fieldName);
+
+        // 3. Filter if field not in metadata (safety)
+        if (!$fieldMeta) {
+            continue;
+        }
+
+        // 4. Filter based on isSystem flag from API
+        if ($fieldMeta->isSystem) {
+            continue;
+        }
+
+        // Field is updatable
+        $filtered[$fieldName] = $value;
+    }
+}
+```
+
+#### Field Categories
+
+**Always Filtered (Not Updatable):**
+1. **System Fields** (`isSystem=true` from API)
+   - `id`, `position`, `searchVector`
+   - System-managed relations: `favorites`, `timelineActivities`, `attachments`
+
+2. **Auto-Managed Fields** (explicit list)
+   - `createdAt`, `updatedAt`, `deletedAt`, `createdBy`
+   - These have `isSystem=false` but are database-managed
+
+3. **Unknown Fields** (not in metadata)
+   - Filtered for safety
+
+**Allowed (Updatable):**
+- Regular fields: `name`, `description`, `industry`, `employees`, etc.
+- Complex fields: `PHONES`, `ADDRESS`, `LINKS`, `CURRENCY`
+- **User-managed relations** (`isSystem=false`): `company`, `people`, `accountOwner`
+
+#### Important: Do Not Filter by Type
+
+**❌ Wrong Approach:**
+```php
+// Don't do this - makes assumptions about types
+$readOnlyTypes = ['UUID', 'DATE_TIME', 'ACTOR', 'RELATION'];
+if (in_array($field->type, $readOnlyTypes)) { continue; }
+```
+
+**✅ Correct Approach:**
+```php
+// Use metadata flags and explicit lists only
+if ($field->isSystem) { continue; }
+if (in_array($fieldName, $autoManagedFields)) { continue; }
+```
+
+**Rationale:**
+- `DATE_TIME` fields might be user-updatable (e.g., `startDate`, `dueDate`)
+- `RELATION` fields with `isSystem=false` are updatable (foreign keys)
+- `ACTOR` fields could theoretically be updatable in custom entities
+- Trust the API's `isSystem` flag over type assumptions
+
+#### Testing Results
+
+**Integration Test:** `CampaignIntegrationTest`
+- ✅ 11/11 tests passing
+- ✅ Create, read, update, delete operations work
+- ✅ Update operations correctly filter system fields
+- ✅ No 500 errors from sending read-only fields
+
+**Unit Test:** `GenericEntityServiceTest`
+- ✅ Field filtering tested with mock metadata
+- ✅ Update operations send only updatable fields
+
+#### Lessons Learned
+
+1. **Trust API Metadata:** The `isSystem` flag is the primary source of truth
+2. **Supplement with Domain Knowledge:** Auto-managed timestamps need explicit handling
+3. **Don't Assume by Type:** Field types don't reliably indicate updatability
+4. **Test Against Real API:** Integration tests revealed the timestamp issue that unit tests couldn't catch
+
+### D. References
 
 - [Twenty CRM API Documentation](https://twenty.com/developers)
 - [Valinor Documentation](https://valinor.cuyz.io/)
