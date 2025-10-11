@@ -19,24 +19,24 @@ The main library providing tools and runtime support for Twenty CRM integration:
   - HTTP client infrastructure
 - **Tests:** Unit tests only (`tests/Unit/`)
 
-### 2. Factorial Entities (`/factorial-entities/`)
+### 2. Usage Example (`/usage-example/`)
 
-Example implementation with generated entities for Factorial's Twenty CRM instance:
+Example implementation with generated entities demonstrating the library:
 
-- **Location:** `factorial-entities/` subdirectory
-- **Package:** `factorial-io/twenty-crm-entities` (will be extracted to separate repo)
-- **Purpose:** Schema-specific entities and integration tests
+- **Location:** `usage-example/` subdirectory
+- **Package:** `factorial-io/twenty-crm-entities` (example, not published)
+- **Purpose:** Usage examples, schema-specific entities, and integration tests
 - **Contains:**
   - Generated Person, Company, Campaign entities
-  - Integration tests
+  - Integration tests demonstrating library features
   - Test helpers and factories
   - Example usage patterns
-- **Tests:** Integration tests (`factorial-entities/tests/Integration/`)
+- **Tests:** Integration tests (`usage-example/tests/Integration/`)
 
 ## Separation of Concerns
 
-| Concern | Core Library | Factorial Entities |
-|---------|--------------|-------------------|
+| Concern | Core Library | Usage Example |
+|---------|--------------|---------------|
 | Generic tools | ✅ | ❌ |
 | DynamicEntity | ✅ | Uses |
 | Code generator | ✅ | Uses |
@@ -57,16 +57,16 @@ vendor/bin/phpunit
 vendor/bin/phpunit --coverage-html coverage/
 ```
 
-### Factorial Entities (Integration Tests)
+### Usage Example (Integration Tests)
 
 ```bash
 # Setup
-cd factorial-entities
+cd usage-example
 cp .env.example .env
 # Edit .env with your credentials
 
 # Run integration tests
-cd factorial-entities
+cd usage-example
 ../vendor/bin/phpunit
 ```
 
@@ -79,50 +79,44 @@ cd factorial-entities
 3. Run `vendor/bin/phpunit`
 4. Ensure no entity-specific code
 
-### Working on Factorial Entities
+### Working on Usage Example
 
-1. Generate entities: `vendor/bin/twenty-generate --config=factorial-entities/.twenty-codegen.php`
-2. Add integration tests in `factorial-entities/tests/Integration/`
-3. Run `cd factorial-entities && ../vendor/bin/phpunit`
+1. Generate entities: `vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.php`
+2. Add integration tests in `usage-example/tests/Integration/`
+3. Run `cd usage-example && ../vendor/bin/phpunit`
 4. Commit generated code
 
-## Future: Separate Repository
+## Usage Example as Template
 
-The `factorial-entities/` directory is designed to be extracted into a separate repository:
+The `usage-example/` directory serves multiple purposes:
 
-```
-factorial-io/twenty-crm-php-client    # Core library (this repo)
-factorial-io/twenty-crm-entities      # Generated entities (future repo)
-```
-
-When extracted:
-- `factorial-entities/` becomes root of new repo
-- Add `factorial-io/twenty-crm-php-client` as dependency
-- Integration tests move with entities
-- Core library remains schema-agnostic
+1. **Documentation:** Shows how to use the library with real code
+2. **Testing:** Integration tests validate library features against a live Twenty CRM instance
+3. **Code Generation Example:** Demonstrates the code generation workflow
+4. **Template:** Can be copied/adapted for your own Twenty CRM instance
 
 ## Why This Structure?
 
 1. **Flexibility:** Users can use core library with any Twenty instance
-2. **Type Safety:** Factorial gets typed entities with IDE support
-3. **Clean Separation:** No entity-specific code in core library
-4. **Easy Migration:** Simple to extract entities to separate repo
-5. **Example Code:** Other users see how to generate their own entities
+2. **Type Safety:** Generated typed entities with IDE support
+3. **Clean Separation:** No instance-specific code in core library
+4. **Living Documentation:** Real, tested examples of library usage
+5. **Example Code:** Shows how to generate and use entities
 
 ## Code Generation
 
-Generate entities for Factorial's instance:
+Generate entities using the example configuration:
 
 ```bash
 # Using config file
-vendor/bin/twenty-generate --config=factorial-entities/.twenty-codegen.php
+vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.php
 
 # Or with CLI args
 vendor/bin/twenty-generate \
-  --api-url=https://factorial.twenty.com/rest/ \
+  --api-url=https://your-instance.twenty.com/rest/ \
   --api-token=$TWENTY_TOKEN \
   --namespace="Factorial\\TwentyCrm\\Entities" \
-  --output=factorial-entities/src \
+  --output=usage-example/src \
   --entities=person,company,campaign
 ```
 

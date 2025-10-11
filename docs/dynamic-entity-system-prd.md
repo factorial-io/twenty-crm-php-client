@@ -956,8 +956,8 @@ src/Services/GenericEntityService.php (267 lines)
 src/Client/TwentyCrmClient.php (54 lines - updated)
 tests/Unit/Services/EntityRegistryTest.php
 tests/Unit/Services/GenericEntityServiceTest.php
-factorial-entities/tests/Integration/CampaignIntegrationTest.php (321 lines)
-factorial-entities/tests/TestCase.php (28 lines)
+usage-example/tests/Integration/CampaignIntegrationTest.php (321 lines)
+usage-example/tests/TestCase.php (28 lines)
 ```
 
 ### ✅ Phase 3: Code Generation (COMPLETED)
@@ -1037,10 +1037,10 @@ src/Generator/EntityGenerator.php (237 lines)
 src/Metadata/FieldConstants.php (116 lines)
 src/Console/GenerateEntitiesCommand.php (290 lines)
 bin/twenty-generate (executable)
-factorial-entities/.twenty-codegen.yaml (example config)
-factorial-entities/src/Campaign.php (223 lines, generated)
-factorial-entities/src/Company.php (564 lines, generated)
-factorial-entities/src/Person.php (639 lines, generated)
+usage-example/.twenty-codegen.yaml (example config)
+usage-example/src/Campaign.php (223 lines, generated)
+usage-example/src/Company.php (564 lines, generated)
+usage-example/src/Person.php (639 lines, generated)
 ```
 
 ### ✅ Phase 4: Complex Field Handlers & Service Generation (COMPLETED)
@@ -1122,15 +1122,15 @@ For each entity, the generator creates:
 
 **Example Generated Files:**
 ```
-factorial-entities/src/Person.php (643 lines)
-factorial-entities/src/PersonService.php (122 lines)
-factorial-entities/src/PersonCollection.php (93 lines)
-factorial-entities/src/Company.php (567 lines)
-factorial-entities/src/CompanyService.php (122 lines)
-factorial-entities/src/CompanyCollection.php (93 lines)
-factorial-entities/src/Campaign.php (223 lines)
-factorial-entities/src/CampaignService.php (122 lines)
-factorial-entities/src/CampaignCollection.php (93 lines)
+usage-example/src/Person.php (643 lines)
+usage-example/src/PersonService.php (122 lines)
+usage-example/src/PersonCollection.php (93 lines)
+usage-example/src/Company.php (567 lines)
+usage-example/src/CompanyService.php (122 lines)
+usage-example/src/CompanyCollection.php (93 lines)
+usage-example/src/Campaign.php (223 lines)
+usage-example/src/CampaignService.php (122 lines)
+usage-example/src/CampaignCollection.php (93 lines)
 ```
 
 **Test Results:**
@@ -1187,8 +1187,8 @@ src/DTO/DynamicEntity.php (modified - added transformation)
 src/Generator/ServiceGenerator.php (223 lines)
 src/Generator/CollectionGenerator.php (151 lines)
 src/Generator/EntityGenerator.php (modified - service/collection generation)
-factorial-entities/generate_with_services.php (generation script)
-factorial-entities/test_generated_service.php (integration test)
+usage-example/generate_with_services.php (generation script)
+usage-example/test_generated_service.php (integration test)
 ```
 
 ### Pending Work
@@ -1211,7 +1211,7 @@ factorial-entities/test_generated_service.php (integration test)
 - Phase 8: Additional Testing & Documentation
 
 **Cleanup:**
-- Debug scripts in `factorial-entities/` can be removed (used for investigation only)
+- Debug scripts in `usage-example/` can be removed (used for investigation only)
 - Add unit tests for CodegenConfig and EntityGenerator
 
 ### Technical Achievements
@@ -1386,7 +1386,7 @@ composer install
 vendor/bin/phpunit tests/Unit
 
 # Run integration tests
-cd factorial-entities
+cd usage-example
 cp .env.example .env
 # Edit .env with your TWENTY_API_BASE_URI and TWENTY_API_TOKEN
 composer install
@@ -1431,7 +1431,7 @@ cf8b968 feat: implement Phase 1 - DynamicEntity foundation
 5. Verify generated code structure
 
 **If merging to main:**
-1. Remove debug scripts from `factorial-entities/`
+1. Remove debug scripts from `usage-example/`
 2. Run full test suite one more time
 3. Create PR: `refactor/make-it-dynamic` → `main`
 4. Tag as `v0.3.0-beta` or similar
