@@ -71,7 +71,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('TestCampaign'),
-                'description' => 'Integration test campaign for dynamic entity system',
+                'purpose' => 'Integration test campaign for dynamic entity system',
+                'targetGroup' => 'Test Users',
             ]
         );
 
@@ -80,7 +81,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
 
         $this->assertNotNull($createdCampaign->getId());
         $this->assertSame($campaign->get('name'), $createdCampaign->get('name'));
-        $this->assertSame($campaign->get('description'), $createdCampaign->get('description'));
+        $this->assertSame($campaign->get('purpose'), $createdCampaign->get('purpose'));
+        $this->assertSame($campaign->get('targetGroup'), $createdCampaign->get('targetGroup'));
     }
 
     public function testGetCampaignById(): void
@@ -92,7 +94,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('GetByIdTest'),
-                'description' => 'Test campaign for getById',
+                'purpose' => 'Test campaign for getById',
+                'targetGroup' => 'Test Users',
             ]
         );
 
@@ -105,7 +108,7 @@ class CampaignIntegrationTest extends IntegrationTestCase
         $this->assertNotNull($retrievedCampaign);
         $this->assertSame($createdCampaign->getId(), $retrievedCampaign->getId());
         $this->assertSame($createdCampaign->get('name'), $retrievedCampaign->get('name'));
-        $this->assertSame($createdCampaign->get('description'), $retrievedCampaign->get('description'));
+        $this->assertSame($createdCampaign->get('purpose'), $retrievedCampaign->get('purpose'));
     }
 
     public function testUpdateCampaign(): void
@@ -117,7 +120,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('UpdateTest'),
-                'description' => 'Original description',
+                'purpose' => 'Original purpose',
+                'targetGroup' => 'Test Users',
             ]
         );
 
@@ -125,15 +129,15 @@ class CampaignIntegrationTest extends IntegrationTestCase
         $this->trackResource('campaign', $createdCampaign->getId());
 
         // Update the campaign
-        $createdCampaign->set('description', 'Updated description');
+        $createdCampaign->set('purpose', 'Updated purpose');
         $updatedCampaign = $this->campaignService->update($createdCampaign);
 
         $this->assertSame($createdCampaign->getId(), $updatedCampaign->getId());
-        $this->assertSame('Updated description', $updatedCampaign->get('description'));
+        $this->assertSame('Updated purpose', $updatedCampaign->get('purpose'));
 
         // Verify via retrieval
         $retrievedCampaign = $this->campaignService->getById($updatedCampaign->getId());
-        $this->assertSame('Updated description', $retrievedCampaign->get('description'));
+        $this->assertSame('Updated purpose', $retrievedCampaign->get('purpose'));
     }
 
     public function testDeleteCampaign(): void
@@ -145,7 +149,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('DeleteTest'),
-                'description' => 'Campaign to be deleted',
+                'purpose' => 'Campaign to be deleted',
+                'targetGroup' => 'Test Users',
             ]
         );
 
@@ -174,7 +179,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
                 $this->campaignService->getDefinition(),
                 [
                     'name' => "{$testPrefix}_{$i}",
-                    'description' => "Test campaign {$i}",
+                    'purpose' => "Test campaign {$i}",
+                    'targetGroup' => 'Test Users',
                 ]
             );
 
@@ -207,7 +213,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('ArrayAccessTest'),
-                'description' => 'Test array access on dynamic entity',
+                'purpose' => 'Test array access on dynamic entity',
+                'targetGroup' => 'Test Users',
             ]
         );
 
@@ -216,11 +223,11 @@ class CampaignIntegrationTest extends IntegrationTestCase
 
         // Test ArrayAccess interface
         $this->assertSame($createdCampaign->get('name'), $createdCampaign['name']);
-        $this->assertSame($createdCampaign->get('description'), $createdCampaign['description']);
+        $this->assertSame($createdCampaign->get('purpose'), $createdCampaign['purpose']);
 
         // Test modification via ArrayAccess
-        $createdCampaign['description'] = 'Modified via array access';
-        $this->assertSame('Modified via array access', $createdCampaign->get('description'));
+        $createdCampaign['purpose'] = 'Modified via array access';
+        $this->assertSame('Modified via array access', $createdCampaign->get('purpose'));
     }
 
     public function testCampaignIteration(): void
@@ -232,7 +239,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('IterationTest'),
-                'description' => 'Test iteration on dynamic entity',
+                'purpose' => 'Test iteration on dynamic entity',
+                'targetGroup' => 'Test Users',
             ]
         );
 
@@ -247,7 +255,7 @@ class CampaignIntegrationTest extends IntegrationTestCase
 
         $this->assertArrayHasKey('id', $fields);
         $this->assertArrayHasKey('name', $fields);
-        $this->assertArrayHasKey('description', $fields);
+        $this->assertArrayHasKey('purpose', $fields);
         $this->assertSame($createdCampaign->getId(), $fields['id']);
     }
 
@@ -260,7 +268,8 @@ class CampaignIntegrationTest extends IntegrationTestCase
             $this->campaignService->getDefinition(),
             [
                 'name' => $this->generateTestName('JsonTest'),
-                'description' => 'Test JSON serialization',
+                'purpose' => 'Test JSON serialization',
+                'targetGroup' => 'Test Users',
             ]
         );
 

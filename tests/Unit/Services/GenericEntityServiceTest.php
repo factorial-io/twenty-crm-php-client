@@ -29,11 +29,18 @@ class GenericEntityServiceTest extends TestCase
         parent::setUp();
 
         $this->httpClient = $this->createMock(HttpClientInterface::class);
+
+        // Create mock field metadata for testing
+        $fields = [
+            'name' => new class ('field-1', 'name', 'TEXT', 'Name', 'obj-1', false) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {},
+            'email' => new class ('field-2', 'email', 'EMAIL', 'Email', 'obj-1', true) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {},
+        ];
+
         $this->definition = new EntityDefinition(
             objectName: 'person',
             objectNamePlural: 'people',
             apiEndpoint: '/people',
-            fields: [],
+            fields: $fields,
             standardFields: ['id', 'name', 'email'],
         );
         $this->service = new GenericEntityService($this->httpClient, $this->definition);
