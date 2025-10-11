@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Metadata;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 /**
  * Abstract base class for field metadata.
  *
@@ -14,7 +16,7 @@ abstract class FieldMetadata
     /**
      * @param string $id The field ID
      * @param string $name The field name (API key)
-     * @param string $type The field type (UUID, TEXT, SELECT, etc.)
+     * @param FieldType $type The field type
      * @param string $label The human-readable label
      * @param string $objectMetadataId The ID of the object this field belongs to
      * @param bool $isNullable Whether the field can be null
@@ -28,7 +30,7 @@ abstract class FieldMetadata
     public function __construct(
         public readonly string $id,
         public readonly string $name,
-        public readonly string $type,
+        public readonly FieldType $type,
         public readonly string $label,
         public readonly string $objectMetadataId,
         public readonly bool $isNullable,
@@ -42,16 +44,6 @@ abstract class FieldMetadata
     }
 
     /**
-     * Get the field type name.
-     *
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
      * Check if this field is required (not nullable).
      *
      * @return bool
@@ -59,5 +51,15 @@ abstract class FieldMetadata
     public function isRequired(): bool
     {
         return !$this->isNullable;
+    }
+
+    /**
+     * Check if this is a relation field.
+     *
+     * @return bool
+     */
+    public function isRelation(): bool
+    {
+        return $this->type->isRelation();
     }
 }

@@ -279,12 +279,8 @@ class EntityRegistry
      */
     private function isRelationField(string $fieldType): bool
     {
-        return in_array($fieldType, [
-            'RELATION',
-            'RELATION_MANY_TO_ONE',
-            'RELATION_ONE_TO_MANY',
-            'RELATION_MANY_TO_MANY',
-        ], true);
+        // In Twenty CRM API, relation fields have type 'RELATION'
+        return $fieldType === 'RELATION';
     }
 
     /**
@@ -296,47 +292,7 @@ class EntityRegistry
      */
     private function buildRelationMetadata(string $fieldName, array $fieldData): ?RelationMetadata
     {
-        $relationType = $this->mapRelationType($fieldData['type'] ?? '');
-        if (!$relationType) {
-            return null;
-        }
-
-        $relationDef = $fieldData['relationDefinition'] ?? [];
-        $targetObjectMeta = $relationDef['targetObjectMetadata'] ?? [];
-
-        $targetEntity = $targetObjectMeta['nameSingular'] ?? null;
-        if (!$targetEntity) {
-            return null;
-        }
-
-        $foreignKey = $relationDef['foreignKeyFieldName'] ?? $fieldName . 'Id';
-        $inverseName = $relationDef['inverseSideFieldName'] ?? null;
-
-        return new RelationMetadata(
-            name: $fieldName,
-            type: $relationType,
-            targetEntity: $targetEntity,
-            foreignKey: $foreignKey,
-            inverseName: $inverseName,
-            isNullable: $fieldData['isNullable'] ?? true,
-            isCustom: $fieldData['isCustom'] ?? false,
-        );
-    }
-
-    /**
-     * Map Twenty CRM relation type to internal relation type.
-     *
-     * @param string $apiType The API relation type
-     * @return string|null The internal relation type or null if invalid
-     */
-    private function mapRelationType(string $apiType): ?string
-    {
-        return match ($apiType) {
-            'RELATION_MANY_TO_ONE' => 'MANY_TO_ONE',
-            'RELATION_ONE_TO_MANY' => 'ONE_TO_MANY',
-            'RELATION_MANY_TO_MANY' => 'MANY_TO_MANY',
-            'RELATION' => 'MANY_TO_ONE', // Default to MANY_TO_ONE
-            default => null,
-        };
+        // Use the factory method from RelationMetadata
+        return RelationMetadata::fromApiMetadata($fieldData);
     }
 }

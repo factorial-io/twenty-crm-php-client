@@ -92,8 +92,8 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
         $handlers = self::getHandlerRegistry();
 
         // If we have a handler and value is an array, transform to PHP object
-        if ($handlers->hasHandler($field->type) && is_array($value)) {
-            return $handlers->fromApi($field->type, $value);
+        if ($handlers->hasHandler($field->type->value) && is_array($value)) {
+            return $handlers->fromApi($field->type->value, $value);
         }
 
         // Return as-is (already a PHP object or basic type)
@@ -158,9 +158,9 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
             }
 
             // Check if we have a handler for this field type
-            if ($handlers->hasHandler($field->type)) {
+            if ($handlers->hasHandler($field->type->value)) {
                 // Transform PHP object to API array format
-                $result[$fieldName] = $handlers->toApi($field->type, $value);
+                $result[$fieldName] = $handlers->toApi($field->type->value, $value);
             } else {
                 // No handler, pass through as-is
                 $result[$fieldName] = $value;
