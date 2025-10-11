@@ -2,6 +2,10 @@
 .env
 .env.local
 
+# Code Generation Configuration (may contain API tokens)
+.twenty-codegen.yml
+.twenty-codegen.yaml
+
 # PHPUnit
 phpunit.xml
 .phpunit.result.cache
