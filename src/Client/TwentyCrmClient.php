@@ -9,6 +9,7 @@ use Factorial\TwentyCrm\Services\CompanyService;
 use Factorial\TwentyCrm\Services\CompanyServiceInterface;
 use Factorial\TwentyCrm\Services\ContactService;
 use Factorial\TwentyCrm\Services\ContactServiceInterface;
+use Factorial\TwentyCrm\Services\MetadataService;
 
 /**
  * Main Twenty CRM client implementation.
@@ -28,6 +29,13 @@ final class TwentyCrmClient implements ClientInterface
      * @var \Factorial\TwentyCrm\Services\CompanyServiceInterface|null
      */
     private ?CompanyServiceInterface $companyService = null;
+
+    /**
+     * The metadata service instance.
+     *
+     * @var \Factorial\TwentyCrm\Services\MetadataService|null
+     */
+    private ?MetadataService $metadataService = null;
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -56,5 +64,19 @@ final class TwentyCrmClient implements ClientInterface
         }
 
         return $this->companyService;
+    }
+
+    /**
+     * Get the metadata service.
+     *
+     * @return \Factorial\TwentyCrm\Services\MetadataService
+     */
+    public function metadata(): MetadataService
+    {
+        if ($this->metadataService === null) {
+            $this->metadataService = new MetadataService($this->httpClient);
+        }
+
+        return $this->metadataService;
     }
 }

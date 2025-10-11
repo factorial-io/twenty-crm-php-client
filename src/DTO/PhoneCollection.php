@@ -36,7 +36,8 @@ class PhoneCollection
     {
         // Create primary phone
         $primaryPhone = null;
-        if (isset($data['primaryPhoneNumber'])
+        if (
+            isset($data['primaryPhoneNumber'])
             || isset($data['primaryPhoneCountryCode'])
             || isset($data['primaryPhoneCallingCode'])
         ) {
