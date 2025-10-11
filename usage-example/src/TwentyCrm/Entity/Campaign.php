@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Entity;
 
 use Factorial\TwentyCrm\DTO\DynamicEntity;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;

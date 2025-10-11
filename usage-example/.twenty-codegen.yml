@@ -1,0 +1,31 @@
+# Twenty CRM code generation configuration
+# Usage: bin/twenty-generate --config=.twenty-codegen.yml
+
+# Base namespace for generated code (Entity, Service, Collection will be appended)
+namespace: Factorial\TwentyCrm
+
+# Output directory for generated code (Entity/, Service/, Collection/ will be created)
+output_dir: src/TwentyCrm
+
+# Twenty CRM API configuration
+# Environment variables can be referenced using ${VAR_NAME} syntax
+api_url: ${TWENTY_API_BASE_URI}
+api_token: ${TWENTY_API_TOKEN}
+
+# Entities to generate
+# These match Factorial's Twenty CRM instance schema
+entities:
+  - person      # Standard entity (Contact in v0.x)
+  - company     # Standard entity
+  - campaign    # Custom entity (Factorial-specific)
+
+# Code generation options
+options:
+  # Generate service classes (PersonService, CompanyService, etc.)
+  generate_services: true
+  
+  # Generate collection classes (PersonCollection, CompanyCollection, etc.)
+  generate_collections: true
+  
+  # Overwrite existing files (default: false)
+  overwrite: false

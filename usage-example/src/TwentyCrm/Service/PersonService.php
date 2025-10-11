@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Service;
 
+use Factorial\TwentyCrm\Collection\PersonCollection;
 use Factorial\TwentyCrm\DTO\FilterInterface;
 use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Entity\Person;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
@@ -38,7 +40,7 @@ final class PersonService
      * @param SearchOptions $options Search options
      * @return PersonCollection
      */
-    public function find(FilterInterface $filter, SearchOptions $options): PersonCollection
+    public function find(FilterInterface $filter, SearchOptions $options): \PersonCollection
     {
         $dynamicEntities = $this->genericService->find($filter, $options);
         $entities = [];
@@ -56,7 +58,7 @@ final class PersonService
      * @param string $id Entity ID
      * @return Person|null
      */
-    public function getById(string $id): ?Person
+    public function getById(string $id): ?\Person
     {
         $entity = $this->genericService->getById($id);
 
@@ -73,7 +75,7 @@ final class PersonService
      * @param Person $entity Entity to create
      * @return Person
      */
-    public function create(Person $entity): Person
+    public function create(\Person $entity): \Person
     {
         $created = $this->genericService->create($entity);
         return new Person($this->definition, $created->toArray());
@@ -85,7 +87,7 @@ final class PersonService
      * @param Person $entity Entity to update
      * @return Person
      */
-    public function update(Person $entity): Person
+    public function update(\Person $entity): \Person
     {
         $updated = $this->genericService->update($entity);
         return new Person($this->definition, $updated->toArray());
@@ -108,7 +110,7 @@ final class PersonService
      * @param Person[] $entities Entities to upsert
      * @return PersonCollection
      */
-    public function batchUpsert(array $entities): PersonCollection
+    public function batchUpsert(array $entities): \PersonCollection
     {
         $dynamicEntities = $this->genericService->batchUpsert($entities);
         $typedEntities = [];

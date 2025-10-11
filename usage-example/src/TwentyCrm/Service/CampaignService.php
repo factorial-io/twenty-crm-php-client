@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Service;
 
+use Factorial\TwentyCrm\Collection\CampaignCollection;
 use Factorial\TwentyCrm\DTO\FilterInterface;
 use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Entity\Campaign;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
@@ -38,7 +40,7 @@ final class CampaignService
      * @param SearchOptions $options Search options
      * @return CampaignCollection
      */
-    public function find(FilterInterface $filter, SearchOptions $options): CampaignCollection
+    public function find(FilterInterface $filter, SearchOptions $options): \CampaignCollection
     {
         $dynamicEntities = $this->genericService->find($filter, $options);
         $entities = [];
@@ -56,7 +58,7 @@ final class CampaignService
      * @param string $id Entity ID
      * @return Campaign|null
      */
-    public function getById(string $id): ?Campaign
+    public function getById(string $id): ?\Campaign
     {
         $entity = $this->genericService->getById($id);
 
@@ -73,7 +75,7 @@ final class CampaignService
      * @param Campaign $entity Entity to create
      * @return Campaign
      */
-    public function create(Campaign $entity): Campaign
+    public function create(\Campaign $entity): \Campaign
     {
         $created = $this->genericService->create($entity);
         return new Campaign($this->definition, $created->toArray());
@@ -85,7 +87,7 @@ final class CampaignService
      * @param Campaign $entity Entity to update
      * @return Campaign
      */
-    public function update(Campaign $entity): Campaign
+    public function update(\Campaign $entity): \Campaign
     {
         $updated = $this->genericService->update($entity);
         return new Campaign($this->definition, $updated->toArray());
@@ -108,7 +110,7 @@ final class CampaignService
      * @param Campaign[] $entities Entities to upsert
      * @return CampaignCollection
      */
-    public function batchUpsert(array $entities): CampaignCollection
+    public function batchUpsert(array $entities): \CampaignCollection
     {
         $dynamicEntities = $this->genericService->batchUpsert($entities);
         $typedEntities = [];

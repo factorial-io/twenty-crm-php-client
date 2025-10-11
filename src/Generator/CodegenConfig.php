@@ -8,7 +8,7 @@ namespace Factorial\TwentyCrm\Generator;
  * Configuration for entity code generation.
  *
  * This class holds all configuration needed to generate typed entity classes
- * from Twenty CRM metadata. Configuration can be loaded from a PHP file or
+ * from Twenty CRM metadata. Configuration can be loaded from a YAML file or
  * created programmatically.
  */
 class CodegenConfig
@@ -32,29 +32,12 @@ class CodegenConfig
     }
 
     /**
-     * Load configuration from a file (PHP or YAML).
-     *
-     * Supports both .php and .yaml/.yml configuration files.
-     *
-     * PHP format:
-     * ```php
-     * return [
-     *     'namespace' => 'MyApp\TwentyCrm\Entities',
-     *     'output_dir' => 'src/TwentyCrm/Entities',
-     *     'api_url' => 'https://my-twenty.example.com/rest/',
-     *     'api_token' => getenv('TWENTY_API_TOKEN'),
-     *     'entities' => ['person', 'company', 'campaign'],
-     *     'options' => [
-     *         'overwrite' => true,
-     *         'generate_services' => true,
-     *     ],
-     * ];
-     * ```
+     * Load configuration from a YAML file.
      *
      * YAML format:
      * ```yaml
-     * namespace: MyApp\TwentyCrm\Entities
-     * output_dir: src/TwentyCrm/Entities
+     * namespace: MyApp\TwentyCrm
+     * output_dir: src/TwentyCrm
      * api_url: https://my-twenty.example.com/rest/
      * api_token: ${TWENTY_API_TOKEN}
      * entities:
@@ -64,9 +47,10 @@ class CodegenConfig
      * options:
      *   overwrite: true
      *   generate_services: true
+     *   generate_collections: true
      * ```
      *
-     * @param string $path Path to configuration file (.php, .yaml, or .yml)
+     * @param string $path Path to YAML configuration file (.yaml or .yml)
      * @return self
      * @throws \InvalidArgumentException If file doesn't exist or is invalid
      */
@@ -76,52 +60,18 @@ class CodegenConfig
             throw new \InvalidArgumentException("Config file not found: {$path}");
         }
 
-        // Determine file type by extension
+        // Check file extension
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
-        if ($extension === 'php') {
-            $config = self::loadPhpConfig($path);
-        } elseif (in_array($extension, ['yaml', 'yml'], true)) {
-            $config = self::loadYamlConfig($path);
-        } else {
+        if (!in_array($extension, ['yaml', 'yml'], true)) {
             throw new \InvalidArgumentException(
-                "Unsupported config file format: {$extension}. Use .php, .yaml, or .yml"
+                "Unsupported config file format: {$extension}. Only .yaml and .yml files are supported."
             );
         }
 
-        return self::fromArray($config);
-    }
-
-    /**
-     * Load configuration from a PHP file.
-     *
-     * @param string $path Path to PHP config file
-     * @return array<string, mixed>
-     * @throws \InvalidArgumentException If file is invalid
-     */
-    private static function loadPhpConfig(string $path): array
-    {
-        $config = require $path;
-
-        if (!is_array($config)) {
-            throw new \InvalidArgumentException("PHP config file must return an array: {$path}");
-        }
-
-        return $config;
-    }
-
-    /**
-     * Load configuration from a YAML file.
-     *
-     * @param string $path Path to YAML config file
-     * @return array<string, mixed>
-     * @throws \InvalidArgumentException If file is invalid
-     */
-    private static function loadYamlConfig(string $path): array
-    {
         if (!class_exists(\Symfony\Component\Yaml\Yaml::class)) {
             throw new \RuntimeException(
-                'Symfony YAML component is required for YAML config files. '
+                'Symfony YAML component is required. '
                 . 'Install it with: composer require symfony/yaml'
             );
         }
@@ -135,7 +85,7 @@ class CodegenConfig
         // Process environment variable substitution (${VAR_NAME})
         $config = self::processEnvironmentVariables($config);
 
-        return $config;
+        return self::fromArray($config);
     }
 
     /**
@@ -315,6 +265,93 @@ class CodegenConfig
 
         if (!is_writable($dir)) {
             throw new \RuntimeException("Output directory is not writable: {$dir}");
+        }
+    }
+
+    /**
+     * Get the entity subdirectory path.
+     *
+     * @return string
+     */
+    public function getEntityDir(): string
+    {
+        return $this->getAbsoluteOutputDir() . '/Entity';
+    }
+
+    /**
+     * Get the service subdirectory path.
+     *
+     * @return string
+     */
+    public function getServiceDir(): string
+    {
+        return $this->getAbsoluteOutputDir() . '/Service';
+    }
+
+    /**
+     * Get the collection subdirectory path.
+     *
+     * @return string
+     */
+    public function getCollectionDir(): string
+    {
+        return $this->getAbsoluteOutputDir() . '/Collection';
+    }
+
+    /**
+     * Get the entity namespace.
+     *
+     * @return string
+     */
+    public function getEntityNamespace(): string
+    {
+        return $this->namespace . '\\Entity';
+    }
+
+    /**
+     * Get the service namespace.
+     *
+     * @return string
+     */
+    public function getServiceNamespace(): string
+    {
+        return $this->namespace . '\\Service';
+    }
+
+    /**
+     * Get the collection namespace.
+     *
+     * @return string
+     */
+    public function getCollectionNamespace(): string
+    {
+        return $this->namespace . '\\Collection';
+    }
+
+    /**
+     * Ensure all subdirectories exist.
+     *
+     * @return void
+     * @throws \RuntimeException If directories cannot be created
+     */
+    public function ensureSubdirectories(): void
+    {
+        $directories = [
+            $this->getEntityDir(),
+            $this->getServiceDir(),
+            $this->getCollectionDir(),
+        ];
+
+        foreach ($directories as $dir) {
+            if (!is_dir($dir)) {
+                if (!mkdir($dir, 0755, true)) {
+                    throw new \RuntimeException("Failed to create directory: {$dir}");
+                }
+            }
+
+            if (!is_writable($dir)) {
+                throw new \RuntimeException("Directory is not writable: {$dir}");
+            }
         }
     }
 }

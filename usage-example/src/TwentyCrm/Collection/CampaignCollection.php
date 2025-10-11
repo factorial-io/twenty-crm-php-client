@@ -2,26 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Collection;
 
 use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
+use Factorial\TwentyCrm\Entity\Campaign;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 
 /**
- * CompanyCollection (auto-generated).
+ * CampaignCollection (auto-generated).
  *
- * Typed collection of Company entities.
+ * Typed collection of Campaign entities.
  *
  * @codingStandardsIgnoreFile
  * @phpstan-ignore-file
  */
-final class CompanyCollection
+final class CampaignCollection
 {
-    /** @var Company[] */
+    /** @var Campaign[] */
     private array $entities;
 
     public function __construct(
-        /** @param Company[] $entities */
+        /** @param Campaign[] $entities */
         array $entities,
     ) {
         $this->entities = $entities;
@@ -39,7 +40,7 @@ final class CompanyCollection
         $entities = [];
 
         foreach ($collection->getEntities() as $dynamicEntity) {
-            $entities[] = new Company($definition, $dynamicEntity->toArray());
+            $entities[] = new Campaign($definition, $dynamicEntity->toArray());
         }
 
         return new self($entities);
@@ -48,7 +49,7 @@ final class CompanyCollection
     /**
      * Get all entities in the collection.
      *
-     * @return Company[]
+     * @return Campaign[]
      */
     public function getEntities(): array
     {
@@ -56,11 +57,11 @@ final class CompanyCollection
     }
 
     /**
-     * Get all Company entities.
+     * Get all Campaign entities.
      *
-     * @return Company[]
+     * @return Campaign[]
      */
-    public function getCompanies(): array
+    public function getCampaigns(): array
     {
         return $this->entities;
     }
@@ -84,9 +85,9 @@ final class CompanyCollection
     /**
      * Get the first entity in the collection.
      *
-     * @return Company|null
+     * @return Campaign|null
      */
-    public function first(): ?Company
+    public function first(): ?\Campaign
     {
         return $this->entities[0] ?? null;
     }

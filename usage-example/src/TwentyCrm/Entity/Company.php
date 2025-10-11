@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Entity;
 
 use Factorial\TwentyCrm\DTO\Address;
+use Factorial\TwentyCrm\DTO\Currency;
 use Factorial\TwentyCrm\DTO\DynamicEntity;
 use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\PhoneCollection;
@@ -315,7 +316,7 @@ class Company extends DynamicEntity
     /**
      * Get annualRecurringRevenue.
      */
-    public function getAnnualRecurringRevenue(): ?float
+    public function getAnnualRecurringRevenue(): ?Currency
     {
         return $this->get('annualRecurringRevenue');
     }
@@ -323,7 +324,7 @@ class Company extends DynamicEntity
     /**
      * Set annualRecurringRevenue.
      */
-    public function setAnnualRecurringRevenue(?float $value): self
+    public function setAnnualRecurringRevenue(?Currency $value): self
     {
         $this->set('annualRecurringRevenue', $value);
         return $this;
@@ -406,23 +407,6 @@ class Company extends DynamicEntity
     }
 
     /**
-     * Get webTechnologies.
-     */
-    public function getWebTechnologies(): mixed
-    {
-        return $this->get('webTechnologies');
-    }
-
-    /**
-     * Set webTechnologies.
-     */
-    public function setWebTechnologies(mixed $value): self
-    {
-        $this->set('webTechnologies', $value);
-        return $this;
-    }
-
-    /**
      * Get createdAt.
      */
     public function getCreatedAt(): string
@@ -450,7 +434,7 @@ class Company extends DynamicEntity
     /**
      * Get annualRevenue.
      */
-    public function getAnnualRevenue(): ?float
+    public function getAnnualRevenue(): ?Currency
     {
         return $this->get('annualRevenue');
     }
@@ -458,7 +442,7 @@ class Company extends DynamicEntity
     /**
      * Set annualRevenue.
      */
-    public function setAnnualRevenue(?float $value): self
+    public function setAnnualRevenue(?Currency $value): self
     {
         $this->set('annualRevenue', $value);
         return $this;

@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Entity;
 
 use Factorial\TwentyCrm\DTO\Address;
 use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\DTO\EmailCollection;
 use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\DTO\PhoneCollection;
@@ -64,7 +65,7 @@ class Person extends DynamicEntity
     /**
      * Get emails.
      */
-    public function getEmails(): string
+    public function getEmails(): EmailCollection
     {
         return $this->get('emails');
     }
@@ -72,7 +73,7 @@ class Person extends DynamicEntity
     /**
      * Set emails.
      */
-    public function setEmails(string $value): self
+    public function setEmails(EmailCollection $value): self
     {
         $this->set('emails', $value);
         return $this;

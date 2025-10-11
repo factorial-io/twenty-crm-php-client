@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\Entities;
+namespace Factorial\TwentyCrm\Collection;
 
 use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
+use Factorial\TwentyCrm\Entity\Person;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 
 /**
@@ -86,7 +87,7 @@ final class PersonCollection
      *
      * @return Person|null
      */
-    public function first(): ?Person
+    public function first(): ?\Person
     {
         return $this->entities[0] ?? null;
     }

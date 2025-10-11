@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Factorial\\TwentyCrm\\Entities\\": "src/"
+            "Factorial\\TwentyCrm\\": "src/TwentyCrm/"
         }
     },
     "autoload-dev": {

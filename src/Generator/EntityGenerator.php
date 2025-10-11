@@ -62,6 +62,7 @@ class EntityGenerator
         }
 
         $this->config->ensureOutputDirectory();
+        $this->config->ensureSubdirectories();
 
         $className = $this->getClassName($entityName);
         $generated = [];
@@ -122,7 +123,7 @@ class EntityGenerator
     private function generateCollectionFile(EntityDefinition $definition, string $entityClassName): string
     {
         $collectionClassName = $entityClassName . 'Collection';
-        $filePath = $this->getFilePath($collectionClassName);
+        $filePath = $this->config->getCollectionDir() . '/' . $collectionClassName . '.php';
 
         // Check if file exists and overwrite option
         if (file_exists($filePath) && !$this->config->hasOption('overwrite')) {
@@ -149,7 +150,7 @@ class EntityGenerator
     private function generateServiceFile(EntityDefinition $definition, string $entityClassName): string
     {
         $serviceClassName = $entityClassName . 'Service';
-        $filePath = $this->getFilePath($serviceClassName);
+        $filePath = $this->config->getServiceDir() . '/' . $serviceClassName . '.php';
 
         // Check if file exists and overwrite option
         if (file_exists($filePath) && !$this->config->hasOption('overwrite')) {
@@ -195,7 +196,7 @@ class EntityGenerator
         $file = new PhpFile();
         $file->setStrictTypes();
 
-        $namespace = $file->addNamespace($this->config->namespace);
+        $namespace = $file->addNamespace($this->config->getEntityNamespace());
         $namespace->addUse(DynamicEntity::class);
         $namespace->addUse(EntityDefinition::class);
 
@@ -299,15 +300,18 @@ class EntityGenerator
      */
     private function mapFieldTypeToPhp(FieldMetadata $field): string
     {
+        // Convert FieldType enum to string value
+        $typeValue = $field->type->value;
+
         // Check if we have a handler for this field type
-        if ($this->handlers->hasHandler($field->type)) {
-            $phpType = $this->handlers->getPhpType($field->type);
+        if ($this->handlers->hasHandler($typeValue)) {
+            $phpType = $this->handlers->getPhpType($typeValue);
             // Remove leading ? if present, we'll handle nullability separately
             return ltrim($phpType, '?');
         }
 
         // Fall back to basic type mapping
-        return match ($field->type) {
+        return match ($typeValue) {
             'TEXT', 'EMAIL', 'PHONE', 'UUID' => 'string',
             'NUMBER', 'RATING' => 'int',
             'BOOLEAN' => 'bool',
@@ -345,13 +349,13 @@ class EntityGenerator
     }
 
     /**
-     * Get the file path for a generated class.
+     * Get the file path for a generated entity class.
      *
      * @param string $className
      * @return string
      */
     private function getFilePath(string $className): string
     {
-        return $this->config->getAbsoluteOutputDir() . '/' . $className . '.php';
+        return $this->config->getEntityDir() . '/' . $className . '.php';
     }
 }

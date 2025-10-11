@@ -158,13 +158,17 @@ HELP
                 return Command::FAILURE;
             }
 
+            // Read generation options from config
+            $withService = $config->getOption('generate_services', true);
+            $withCollection = $config->getOption('generate_collections', true);
+
             $generatedFiles = [];
             foreach ($config->entities as $entityName) {
                 $io->write("  Generating <info>{$entityName}</info>... ");
 
                 try {
-                    $filePath = $generator->generateEntity($entityName);
-                    $generatedFiles[] = $filePath;
+                    $files = $generator->generateEntity($entityName, $withService, $withCollection);
+                    $generatedFiles[$entityName] = $files;
                     $io->writeln('<fg=green>✓</>');
                 } catch (\Exception $e) {
                     $io->writeln('<fg=red>✗</>');
@@ -182,8 +186,11 @@ HELP
 
             // List generated files
             $io->section('Generated files');
-            foreach ($generatedFiles as $file) {
-                $io->writeln("  <comment>{$file}</comment>");
+            foreach ($generatedFiles as $entityName => $files) {
+                $io->writeln("  <info>{$entityName}</info>:");
+                foreach ($files as $type => $file) {
+                    $io->writeln("    <comment>[{$type}]</comment> {$file}");
+                }
             }
 
             // Next steps
@@ -218,7 +225,23 @@ HELP
             $configDir = realpath(dirname($configFile)) ?: dirname($configFile);
             $this->loadEnvFile($configDir);
 
-            return CodegenConfig::fromFile($configFile);
+            $config = CodegenConfig::fromFile($configFile);
+
+            // Merge command-line options with config file options
+            // Command-line options override config file
+            if ($input->getOption('overwrite')) {
+                // Merge overwrite option into config
+                return new CodegenConfig(
+                    namespace: $config->namespace,
+                    outputDir: $config->outputDir,
+                    apiUrl: $config->apiUrl,
+                    apiToken: $config->apiToken,
+                    entities: $config->entities,
+                    options: array_merge($config->options, ['overwrite' => true])
+                );
+            }
+
+            return $config;
         }
 
         // Build from command-line options

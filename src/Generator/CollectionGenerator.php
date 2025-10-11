@@ -38,12 +38,15 @@ class CollectionGenerator
         $file = new PhpFile();
         $file->setStrictTypes();
 
-        $namespace = $file->addNamespace($this->config->namespace);
+        $namespace = $file->addNamespace($this->config->getCollectionNamespace());
 
         // Add use statements
         $namespace->addUse(DynamicEntityCollection::class);
         $namespace->addUse(EntityDefinition::class);
-        // Note: Don't add use for entity class - it's in same namespace
+
+        // Add use for entity class from Entity namespace
+        $entityFullClass = $this->config->getEntityNamespace() . '\\' . $entityClassName;
+        $namespace->addUse($entityFullClass);
 
         $collectionClassName = $entityClassName . 'Collection';
 
@@ -104,7 +107,7 @@ class CollectionGenerator
         // Add first method
         $method = $class->addMethod('first');
         $method->setPublic();
-        $method->setReturnType($class->getNamespace()->getName() . '\\' . $entityClassName);
+        $method->setReturnType($entityClassName);
         $method->setReturnNullable(true);
         $method->addComment("Get the first entity in the collection.\n");
         $method->addComment("@return {$entityClassName}|null");
