@@ -1047,7 +1047,7 @@ factorial-entities/src/Person.php (639 lines, generated)
 
 **Status:** 100% Complete
 **Completed:** 2025-10-11
-**Commits:** [to be added after commit]
+**Commits:** 74eda27
 
 **Delivered:**
 - ✅ NestedObjectHandler interface (src/FieldHandlers/NestedObjectHandler.php)
