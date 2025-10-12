@@ -55,7 +55,7 @@ class Company extends DynamicEntity
     /**
      * Get favorites.
      */
-    public function getFavorites(): mixed
+    public function getFavorites(): ?string
     {
         return $this->get('favorites');
     }
@@ -155,7 +155,7 @@ class Company extends DynamicEntity
     /**
      * Get opportunities.
      */
-    public function getOpportunities(): mixed
+    public function getOpportunities(): ?string
     {
         return $this->get('opportunities');
     }
@@ -163,7 +163,7 @@ class Company extends DynamicEntity
     /**
      * Set opportunities.
      */
-    public function setOpportunities(mixed $value): self
+    public function setOpportunities(?string $value): self
     {
         $this->set('opportunities', $value);
         return $this;
@@ -172,7 +172,7 @@ class Company extends DynamicEntity
     /**
      * Get accountOwner.
      */
-    public function getAccountOwner(): mixed
+    public function getAccountOwner(): ?string
     {
         return $this->get('accountOwner');
     }
@@ -180,7 +180,7 @@ class Company extends DynamicEntity
     /**
      * Set accountOwner.
      */
-    public function setAccountOwner(mixed $value): self
+    public function setAccountOwner(?string $value): self
     {
         $this->set('accountOwner', $value);
         return $this;
@@ -189,7 +189,7 @@ class Company extends DynamicEntity
     /**
      * Get timelineActivities.
      */
-    public function getTimelineActivities(): mixed
+    public function getTimelineActivities(): ?string
     {
         return $this->get('timelineActivities');
     }
@@ -248,7 +248,7 @@ class Company extends DynamicEntity
     /**
      * Get taskTargets.
      */
-    public function getTaskTargets(): mixed
+    public function getTaskTargets(): ?string
     {
         return $this->get('taskTargets');
     }
@@ -256,7 +256,7 @@ class Company extends DynamicEntity
     /**
      * Set taskTargets.
      */
-    public function setTaskTargets(mixed $value): self
+    public function setTaskTargets(?string $value): self
     {
         $this->set('taskTargets', $value);
         return $this;
@@ -265,7 +265,7 @@ class Company extends DynamicEntity
     /**
      * Get noteTargets.
      */
-    public function getNoteTargets(): mixed
+    public function getNoteTargets(): ?string
     {
         return $this->get('noteTargets');
     }
@@ -273,7 +273,7 @@ class Company extends DynamicEntity
     /**
      * Set noteTargets.
      */
-    public function setNoteTargets(mixed $value): self
+    public function setNoteTargets(?string $value): self
     {
         $this->set('noteTargets', $value);
         return $this;
@@ -510,7 +510,7 @@ class Company extends DynamicEntity
     /**
      * Get people.
      */
-    public function getPeople(): mixed
+    public function getPeople(): ?string
     {
         return $this->get('people');
     }
@@ -518,7 +518,7 @@ class Company extends DynamicEntity
     /**
      * Set people.
      */
-    public function setPeople(mixed $value): self
+    public function setPeople(?string $value): self
     {
         $this->set('people', $value);
         return $this;
@@ -527,7 +527,7 @@ class Company extends DynamicEntity
     /**
      * Get attachments.
      */
-    public function getAttachments(): mixed
+    public function getAttachments(): ?string
     {
         return $this->get('attachments');
     }

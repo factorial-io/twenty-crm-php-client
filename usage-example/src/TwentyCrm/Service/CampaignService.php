@@ -52,14 +52,8 @@ final class CampaignService
      */
     public function find(FilterInterface $filter, SearchOptions $options): CampaignCollection
     {
-        $dynamicEntities = $this->genericService->find($filter, $options);
-        $entities = [];
-
-        foreach ($dynamicEntities as $dynamicEntity) {
-            $entities[] = new Campaign($this->definition, $dynamicEntity->toArray());
-        }
-
-        return new CampaignCollection($entities);
+        $dynamicCollection = $this->genericService->find($filter, $options);
+        return CampaignCollection::fromDynamicCollection($dynamicCollection);
     }
 
     /**
@@ -122,13 +116,7 @@ final class CampaignService
      */
     public function batchUpsert(array $entities): CampaignCollection
     {
-        $dynamicEntities = $this->genericService->batchUpsert($entities);
-        $typedEntities = [];
-
-        foreach ($dynamicEntities as $dynamicEntity) {
-            $typedEntities[] = new Campaign($this->definition, $dynamicEntity->toArray());
-        }
-
-        return new CampaignCollection($typedEntities);
+        $dynamicCollection = $this->genericService->batchUpsert($entities);
+        return CampaignCollection::fromDynamicCollection($dynamicCollection);
     }
 }

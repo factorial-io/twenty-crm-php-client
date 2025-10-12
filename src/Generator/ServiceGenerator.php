@@ -143,12 +143,8 @@ class ServiceGenerator
         $method->addParameter('options')->setType(SearchOptions::class);
 
         $method->setBody(
-            '$dynamicEntities = $this->genericService->find($filter, $options);' . "\n" .
-            '$entities = [];' . "\n\n" .
-            'foreach ($dynamicEntities as $dynamicEntity) {' . "\n" .
-            '    $entities[] = new ' . $entityClassName . '($this->definition, $dynamicEntity->toArray());' . "\n" .
-            '}' . "\n\n" .
-            'return new ' . $collectionClassName . '($entities);'
+            '$dynamicCollection = $this->genericService->find($filter, $options);' . "\n" .
+            'return ' . $collectionClassName . '::fromDynamicCollection($dynamicCollection);'
         );
     }
 
@@ -241,12 +237,8 @@ class ServiceGenerator
         $method->addParameter('entities')->setType('array');
 
         $method->setBody(
-            '$dynamicEntities = $this->genericService->batchUpsert($entities);' . "\n" .
-            '$typedEntities = [];' . "\n\n" .
-            'foreach ($dynamicEntities as $dynamicEntity) {' . "\n" .
-            '    $typedEntities[] = new ' . $entityClassName . '($this->definition, $dynamicEntity->toArray());' . "\n" .
-            '}' . "\n\n" .
-            'return new ' . $collectionClassName . '($typedEntities);'
+            '$dynamicCollection = $this->genericService->batchUpsert($entities);' . "\n" .
+            'return ' . $collectionClassName . '::fromDynamicCollection($dynamicCollection);'
         );
     }
 }

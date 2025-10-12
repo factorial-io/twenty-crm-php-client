@@ -52,14 +52,8 @@ final class PersonService
      */
     public function find(FilterInterface $filter, SearchOptions $options): PersonCollection
     {
-        $dynamicEntities = $this->genericService->find($filter, $options);
-        $entities = [];
-
-        foreach ($dynamicEntities as $dynamicEntity) {
-            $entities[] = new Person($this->definition, $dynamicEntity->toArray());
-        }
-
-        return new PersonCollection($entities);
+        $dynamicCollection = $this->genericService->find($filter, $options);
+        return PersonCollection::fromDynamicCollection($dynamicCollection);
     }
 
     /**
@@ -122,13 +116,7 @@ final class PersonService
      */
     public function batchUpsert(array $entities): PersonCollection
     {
-        $dynamicEntities = $this->genericService->batchUpsert($entities);
-        $typedEntities = [];
-
-        foreach ($dynamicEntities as $dynamicEntity) {
-            $typedEntities[] = new Person($this->definition, $dynamicEntity->toArray());
-        }
-
-        return new PersonCollection($typedEntities);
+        $dynamicCollection = $this->genericService->batchUpsert($entities);
+        return PersonCollection::fromDynamicCollection($dynamicCollection);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Services;
 
 use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
 use Factorial\TwentyCrm\DTO\FilterInterface;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Exception\ApiException;
@@ -41,9 +42,9 @@ class GenericEntityService
      *
      * @param FilterInterface $filter The search filter
      * @param SearchOptions $options The search options
-     * @return DynamicEntity[] Array of entities
+     * @return DynamicEntityCollection Collection of entities
      */
-    public function find(FilterInterface $filter, SearchOptions $options): array
+    public function find(FilterInterface $filter, SearchOptions $options): DynamicEntityCollection
     {
         $queryParams = $options->toQueryParams();
 
@@ -146,9 +147,9 @@ class GenericEntityService
      * Batch upsert entities.
      *
      * @param DynamicEntity[] $entities The entities to upsert
-     * @return DynamicEntity[] The upserted entities
+     * @return DynamicEntityCollection The upserted entities
      */
-    public function batchUpsert(array $entities): array
+    public function batchUpsert(array $entities): DynamicEntityCollection
     {
         $data = array_map(fn (DynamicEntity $entity) => $entity->toArray(), $entities);
 
@@ -178,14 +179,14 @@ class GenericEntityService
      * Parse a collection response from the API.
      *
      * @param array<string, mixed> $response The API response
-     * @return DynamicEntity[] Array of entities
+     * @return DynamicEntityCollection Collection of entities
      */
-    private function parseCollectionResponse(array $response): array
+    private function parseCollectionResponse(array $response): DynamicEntityCollection
     {
         $data = $response['data'][$this->definition->objectNamePlural] ?? [];
 
         if (!is_array($data)) {
-            return [];
+            return new DynamicEntityCollection($this->definition, []);
         }
 
         $entities = [];
@@ -193,7 +194,7 @@ class GenericEntityService
             $entities[] = DynamicEntity::fromArray($itemData, $this->definition);
         }
 
-        return $entities;
+        return new DynamicEntityCollection($this->definition, $entities);
     }
 
     /**

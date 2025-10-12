@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\FieldHandlers;
 
 use Factorial\TwentyCrm\Enums\FieldType;
-
 use Factorial\TwentyCrm\DTO\EmailCollection;
 
 /**

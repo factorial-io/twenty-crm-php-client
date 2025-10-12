@@ -26,7 +26,7 @@ class Campaign extends DynamicEntity
     /**
      * Get timelineActivities.
      */
-    public function getTimelineActivities(): mixed
+    public function getTimelineActivities(): ?string
     {
         return $this->get('timelineActivities');
     }
@@ -92,7 +92,7 @@ class Campaign extends DynamicEntity
     /**
      * Get participants.
      */
-    public function getParticipants(): mixed
+    public function getParticipants(): ?string
     {
         return $this->get('participants');
     }
@@ -100,7 +100,7 @@ class Campaign extends DynamicEntity
     /**
      * Set participants.
      */
-    public function setParticipants(mixed $value): self
+    public function setParticipants(?string $value): self
     {
         $this->set('participants', $value);
         return $this;
@@ -109,7 +109,7 @@ class Campaign extends DynamicEntity
     /**
      * Get noteTargets.
      */
-    public function getNoteTargets(): mixed
+    public function getNoteTargets(): ?string
     {
         return $this->get('noteTargets');
     }
@@ -125,7 +125,7 @@ class Campaign extends DynamicEntity
     /**
      * Get campaignLink.
      */
-    public function getCampaignLink(): mixed
+    public function getCampaignLink(): ?string
     {
         return $this->get('campaignLink');
     }
@@ -133,7 +133,7 @@ class Campaign extends DynamicEntity
     /**
      * Set campaignLink.
      */
-    public function setCampaignLink(mixed $value): self
+    public function setCampaignLink(?string $value): self
     {
         $this->set('campaignLink', $value);
         return $this;
@@ -142,7 +142,7 @@ class Campaign extends DynamicEntity
     /**
      * Get favorites.
      */
-    public function getFavorites(): mixed
+    public function getFavorites(): ?string
     {
         return $this->get('favorites');
     }
@@ -158,7 +158,7 @@ class Campaign extends DynamicEntity
     /**
      * Get taskTargets.
      */
-    public function getTaskTargets(): mixed
+    public function getTaskTargets(): ?string
     {
         return $this->get('taskTargets');
     }
@@ -166,7 +166,7 @@ class Campaign extends DynamicEntity
     /**
      * Get campaign.
      */
-    public function getCampaign(): mixed
+    public function getCampaign(): ?string
     {
         return $this->get('campaign');
     }
@@ -174,7 +174,7 @@ class Campaign extends DynamicEntity
     /**
      * Set campaign.
      */
-    public function setCampaign(mixed $value): self
+    public function setCampaign(?string $value): self
     {
         $this->set('campaign', $value);
         return $this;
@@ -183,7 +183,7 @@ class Campaign extends DynamicEntity
     /**
      * Get attachments.
      */
-    public function getAttachments(): mixed
+    public function getAttachments(): ?string
     {
         return $this->get('attachments');
     }

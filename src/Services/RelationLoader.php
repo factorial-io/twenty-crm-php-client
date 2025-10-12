@@ -124,9 +124,9 @@ final class RelationLoader
         $filter = new CustomFilter($filterString);
 
         $options = new SearchOptions(limit: 100); // TODO: Make configurable
-        $results = $targetService->find($filter, $options);
+        $collection = $targetService->find($filter, $options);
 
-        return $results;
+        return $collection->getEntities();
     }
 
     /**

@@ -52,14 +52,8 @@ final class CompanyService
      */
     public function find(FilterInterface $filter, SearchOptions $options): CompanyCollection
     {
-        $dynamicEntities = $this->genericService->find($filter, $options);
-        $entities = [];
-
-        foreach ($dynamicEntities as $dynamicEntity) {
-            $entities[] = new Company($this->definition, $dynamicEntity->toArray());
-        }
-
-        return new CompanyCollection($entities);
+        $dynamicCollection = $this->genericService->find($filter, $options);
+        return CompanyCollection::fromDynamicCollection($dynamicCollection);
     }
 
     /**
@@ -122,13 +116,7 @@ final class CompanyService
      */
     public function batchUpsert(array $entities): CompanyCollection
     {
-        $dynamicEntities = $this->genericService->batchUpsert($entities);
-        $typedEntities = [];
-
-        foreach ($dynamicEntities as $dynamicEntity) {
-            $typedEntities[] = new Company($this->definition, $dynamicEntity->toArray());
-        }
-
-        return new CompanyCollection($typedEntities);
+        $dynamicCollection = $this->genericService->batchUpsert($entities);
+        return CompanyCollection::fromDynamicCollection($dynamicCollection);
     }
 }

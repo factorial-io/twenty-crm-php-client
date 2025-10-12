@@ -6,6 +6,7 @@ namespace Factorial\TwentyCrm\Tests\Unit\Services;
 
 use Factorial\TwentyCrm\DTO\CustomFilter;
 use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Enums\FieldType;
 use Factorial\TwentyCrm\Exception\ApiException;
@@ -77,9 +78,11 @@ class GenericEntityServiceTest extends TestCase
                 ],
             ]);
 
-        $entities = $this->service->find($filter, $options);
+        $collection = $this->service->find($filter, $options);
 
-        $this->assertCount(2, $entities);
+        $this->assertInstanceOf(DynamicEntityCollection::class, $collection);
+        $this->assertCount(2, $collection);
+        $entities = $collection->getEntities();
         $this->assertInstanceOf(DynamicEntity::class, $entities[0]);
         $this->assertSame('John Doe', $entities[0]->get('name'));
         $this->assertInstanceOf(DynamicEntity::class, $entities[1]);
@@ -109,9 +112,11 @@ class GenericEntityServiceTest extends TestCase
                 ],
             ]);
 
-        $entities = $this->service->find($filter, $options);
+        $collection = $this->service->find($filter, $options);
 
-        $this->assertCount(1, $entities);
+        $this->assertInstanceOf(DynamicEntityCollection::class, $collection);
+        $this->assertCount(1, $collection);
+        $entities = $collection->getEntities();
         $this->assertSame('John Doe', $entities[0]->get('name'));
     }
 
@@ -128,9 +133,10 @@ class GenericEntityServiceTest extends TestCase
                 ],
             ]);
 
-        $entities = $this->service->find($filter, $options);
+        $collection = $this->service->find($filter, $options);
 
-        $this->assertSame([], $entities);
+        $this->assertInstanceOf(DynamicEntityCollection::class, $collection);
+        $this->assertTrue($collection->isEmpty());
     }
 
     public function testGetById(): void
@@ -355,9 +361,11 @@ class GenericEntityServiceTest extends TestCase
                 ],
             ]);
 
-        $upsertedEntities = $this->service->batchUpsert($entities);
+        $collection = $this->service->batchUpsert($entities);
 
-        $this->assertCount(2, $upsertedEntities);
+        $this->assertInstanceOf(DynamicEntityCollection::class, $collection);
+        $this->assertCount(2, $collection);
+        $upsertedEntities = $collection->getEntities();
         $this->assertSame('1', $upsertedEntities[0]->getId());
         $this->assertSame('2', $upsertedEntities[1]->getId());
     }
