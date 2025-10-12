@@ -1,7 +1,7 @@
 # Generated entities will be placed here
 #
 # To generate entities:
-# vendor/bin/twenty-generate --config=.twenty-codegen.php
+# vendor/bin/twenty-generate --config=.twenty-codegen.yml
 #
 # Expected generated files:
 # - Person.php

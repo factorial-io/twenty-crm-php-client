@@ -32,7 +32,7 @@ usage-example/
 │   │   └── CampaignIntegrationTest.php
 │   ├── IntegrationTestCase.php
 │   └── Helpers/               # Test helpers and utilities
-├── .twenty-codegen.php        # Code generation configuration
+├── .twenty-codegen.yml        # Code generation configuration
 ├── phpunit.xml                # PHPUnit configuration for integration tests
 └── .env.example              # Environment configuration template
 ```
@@ -148,7 +148,7 @@ composer install
 
 ```bash
 # From the project root
-vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.php
+vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.yml
 
 # Or with custom settings
 vendor/bin/twenty-generate \
@@ -210,7 +210,7 @@ You can copy this directory structure for your own Twenty CRM instance:
 # 1. Copy the usage-example directory
 cp -r usage-example my-twenty-entities
 
-# 2. Update namespace in .twenty-codegen.php
+# 2. Update namespace in .twenty-codegen.yml
 # Change "Factorial\\TwentyCrm\\Entities" to "MyApp\\TwentyCrm\\Entities"
 
 # 3. Configure your Twenty CRM instance
@@ -218,7 +218,7 @@ cp my-twenty-entities/.env.example my-twenty-entities/.env
 # Edit .env with your credentials
 
 # 4. Generate your entities
-vendor/bin/twenty-generate --config=my-twenty-entities/.twenty-codegen.php
+vendor/bin/twenty-generate --config=my-twenty-entities/.twenty-codegen.yml
 
 # 5. Run tests to verify
 cd my-twenty-entities

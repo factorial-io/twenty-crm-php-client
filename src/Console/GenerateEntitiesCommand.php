@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Console command to generate typed entity classes from Twenty CRM metadata.
  *
  * Usage:
- *   bin/twenty-generate --config=.twenty-codegen.php
+ *   bin/twenty-generate --config=.twenty-codegen.yml
  *
  *   bin/twenty-generate \
  *     --namespace="MyApp\Entities" \
@@ -45,7 +45,7 @@ class GenerateEntitiesCommand extends Command
 The <info>generate:entities</info> command generates typed PHP entity classes from your Twenty CRM instance metadata.
 
 <comment>Using a configuration file:</comment>
-  <info>php bin/twenty-generate --config=.twenty-codegen.php</info>
+  <info>php bin/twenty-generate --config=.twenty-codegen.yml</info>
 
 <comment>Using command-line options:</comment>
   <info>php bin/twenty-generate \
@@ -68,7 +68,7 @@ HELP
                 'config',
                 'c',
                 InputOption::VALUE_REQUIRED,
-                'Path to configuration file (.twenty-codegen.php)'
+                'Path to configuration file (.twenty-codegen.yml)'
             )
             ->addOption(
                 'namespace',

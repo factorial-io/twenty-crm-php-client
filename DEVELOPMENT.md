@@ -81,7 +81,7 @@ cd usage-example
 
 ### Working on Usage Example
 
-1. Generate entities: `vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.php`
+1. Generate entities: `vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.yml`
 2. Add integration tests in `usage-example/tests/Integration/`
 3. Run `cd usage-example && ../vendor/bin/phpunit`
 4. Commit generated code
@@ -109,7 +109,7 @@ Generate entities using the example configuration:
 
 ```bash
 # Using config file
-vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.php
+vendor/bin/twenty-generate --config=usage-example/.twenty-codegen.yml
 
 # Or with CLI args
 vendor/bin/twenty-generate \

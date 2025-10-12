@@ -1753,18 +1753,18 @@ cf8b968 feat: implement Phase 1 - DynamicEntity foundation
 # In a Drupal module consuming this library
 # Generate entities for custom Twenty installation
 
-# Create config file: .twenty-codegen.php
-<?php
-return [
-    'namespace' => 'Drupal\\my_module\\TwentyCrm\\Generated',
-    'output_dir' => 'src/TwentyCrm/Generated',
-    'api_url' => 'https://my-twenty.example.com/rest/',
-    'api_token' => getenv('TWENTY_API_TOKEN'),
-    'entities' => ['campaign', 'event', 'ticket'],  // Custom entities
-];
+# Create config file: .twenty-codegen.yml
+namespace: Drupal\my_module\TwentyCrm\Generated
+output_dir: src/TwentyCrm/Generated
+api_url: https://my-twenty.example.com/rest/
+api_token: ${TWENTY_API_TOKEN}
+entities:
+  - campaign
+  - event
+  - ticket
 
 # Run code generation
-vendor/bin/twenty-generate --config=.twenty-codegen.php
+vendor/bin/twenty-generate --config=.twenty-codegen.yml
 
 # Generated files:
 # src/TwentyCrm/Generated/Campaign.php
@@ -2003,7 +2003,7 @@ docs/
 └── RELATIONS.md (new)
 
 examples/
-├── .twenty-codegen.php.example (config file example)
+├── .twenty-codegen.yml.example (config file example)
 ├── drupal-module-integration.php (Drupal example)
 ├── campaign-with-relations.php (relations example)
 └── quick-start.php (getting started example)
@@ -2023,7 +2023,7 @@ docs/
 ```
 ├── composer.json
 │   └── requires: factorial-io/twenty-crm-php-client
-├── .twenty-codegen.php (configuration)
+├── .twenty-codegen.yml (configuration)
 ├── src/
 │   ├── Person.php (generated)
 │   ├── PersonService.php (generated)

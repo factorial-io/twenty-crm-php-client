@@ -648,20 +648,6 @@ options:
   overwrite: true
 ```
 
-**PHP Configuration** (`.twenty-codegen.php`):
-
-```php
-<?php
-return [
-    'namespace' => 'MyApp\\TwentyCrm\\Entities',
-    'output_dir' => 'src/TwentyCrm/Entities',
-    'api_url' => 'https://twenty.example.com/rest/',
-    'api_token' => getenv('TWENTY_API_TOKEN'),
-    'entities' => ['person', 'company', 'campaign'],
-    'options' => ['overwrite' => true],
-];
-```
-
 ### Generation Command
 
 ```bash
