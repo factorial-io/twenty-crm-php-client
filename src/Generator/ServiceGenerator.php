@@ -90,6 +90,9 @@ class ServiceGenerator
             '$this->genericService = new GenericEntityService($httpClient, $definition);'
         );
 
+        // Add createInstance() method
+        $this->addCreateInstanceMethod($class, $entityClassName);
+
         // Add find() method
         $this->addFindMethod($class, $entityClassName, $collectionClassName);
 
@@ -109,6 +112,17 @@ class ServiceGenerator
         $this->addBatchUpsertMethod($class, $entityClassName, $collectionClassName);
 
         return $this->printer->printFile($file);
+    }
+
+    private function addCreateInstanceMethod(ClassType $class, string $entityClassName): void
+    {
+        $method = $class->addMethod('createInstance');
+        $method->setPublic();
+        $method->setReturnType($entityClassName);
+        $method->addComment("Create a new empty {$entityClassName} instance.\n");
+        $method->addComment("@return {$entityClassName}");
+
+        $method->setBody('return new ' . $entityClassName . '($this->definition);');
     }
 
     private function addFindMethod(ClassType $class, string $entityClassName, string $collectionClassName): void

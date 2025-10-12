@@ -34,6 +34,16 @@ final class PersonService
     }
 
     /**
+     * Create a new empty Person instance.
+     *
+     * @return Person
+     */
+    public function createInstance(): \Person
+    {
+        return new Person($this->definition);
+    }
+
+    /**
      * Find Person entities matching filter.
      *
      * @param FilterInterface $filter Search filter

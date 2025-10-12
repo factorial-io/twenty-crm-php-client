@@ -34,6 +34,16 @@ final class CampaignService
     }
 
     /**
+     * Create a new empty Campaign instance.
+     *
+     * @return Campaign
+     */
+    public function createInstance(): \Campaign
+    {
+        return new Campaign($this->definition);
+    }
+
+    /**
      * Find Campaign entities matching filter.
      *
      * @param FilterInterface $filter Search filter

@@ -34,6 +34,16 @@ final class CompanyService
     }
 
     /**
+     * Create a new empty Company instance.
+     *
+     * @return Company
+     */
+    public function createInstance(): \Company
+    {
+        return new Company($this->definition);
+    }
+
+    /**
      * Find Company entities matching filter.
      *
      * @param FilterInterface $filter Search filter
