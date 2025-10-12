@@ -311,7 +311,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
 
         // Should still work with find()
         $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 10));
-        $this->assertGreaterThan(0, count($persons), 'Should return results with empty filter');
+        $this->assertGreaterThan(0, $persons->count(), 'Should return results with empty filter');
     }
 
     public function testFilterWithSearchOptions(): void
@@ -331,7 +331,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         $persons = $this->getPersonService()->find($filter, $options);
 
         // Should respect limit
-        $this->assertLessThanOrEqual(5, count($persons), 'Should respect limit in SearchOptions');
+        $this->assertLessThanOrEqual(5, $persons->count(), 'Should respect limit in SearchOptions');
     }
 
     public function testMultipleFiltersInSequence(): void
