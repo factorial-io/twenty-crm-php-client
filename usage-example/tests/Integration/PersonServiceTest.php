@@ -229,7 +229,7 @@ class PersonServiceTest extends IntegrationTestCase
 
         // Search by email using FilterBuilder
         $filter = FilterBuilder::create()
-            ->where('emails.primaryEmail')->eq($email)
+            ->equals('emails.primaryEmail', $email)
             ->build();
         $results = $this->getPersonService()->find($filter, new SearchOptions());
 
@@ -267,7 +267,7 @@ class PersonServiceTest extends IntegrationTestCase
 
         // Find by email
         $filter = FilterBuilder::create()
-            ->where('emails.primaryEmail')->eq($email)
+            ->equals('emails.primaryEmail',$email)
             ->build();
         $results = $this->getPersonService()->find($filter, new SearchOptions(limit: 1));
 
@@ -284,7 +284,7 @@ class PersonServiceTest extends IntegrationTestCase
         $this->requireClient();
 
         $filter = FilterBuilder::create()
-            ->where('emails.primaryEmail')->eq('nonexistent-' . $this->generateTestEmail())
+            ->equals('emails.primaryEmail','nonexistent-' . $this->generateTestEmail())
             ->build();
         $results = $this->getPersonService()->find($filter, new SearchOptions(limit: 1));
 
@@ -316,7 +316,7 @@ class PersonServiceTest extends IntegrationTestCase
         }
 
         // Search with limit
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $options = new SearchOptions(limit: 2);
         $results = $this->getPersonService()->find($filter, $options);
 

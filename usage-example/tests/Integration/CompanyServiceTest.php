@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Tests\Integration;
 
 use Factorial\TwentyCrm\DTO\CustomFilter;
-use Factorial\TwentyCrm\DTO\DomainName;
-use Factorial\TwentyCrm\DTO\DomainNameCollection;
 use Factorial\TwentyCrm\DTO\FilterBuilder;
+use Factorial\TwentyCrm\DTO\Link;
+use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
@@ -18,7 +18,7 @@ class CompanyServiceTest extends IntegrationTestCase
         $this->requireClient();
 
         // Note: This test assumes at least one company exists in the backend
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $options = new SearchOptions(limit: 1);
         $companies = $this->getCompanyService()->find($filter, $options);
 
@@ -49,7 +49,7 @@ class CompanyServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $options = new SearchOptions(limit: 10);
 
         $results = $this->getCompanyService()->find($filter, $options);
@@ -63,7 +63,7 @@ class CompanyServiceTest extends IntegrationTestCase
         $this->requireClient();
 
         // Get first company to test filtering
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $options = new SearchOptions(limit: 1);
         $companies = $this->getCompanyService()->find($filter, $options);
 
@@ -76,7 +76,7 @@ class CompanyServiceTest extends IntegrationTestCase
 
         // Search by name
         $searchFilter = FilterBuilder::create()
-            ->where('name')->eq($companyName)
+            ->equals('name', $companyName)
             ->build();
         $results = $this->getCompanyService()->find($searchFilter, new SearchOptions());
 
@@ -87,7 +87,7 @@ class CompanyServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $options = new SearchOptions(limit: 5);
 
         $results = $this->getCompanyService()->find($filter, $options);
@@ -99,7 +99,7 @@ class CompanyServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $optionsAsc = new SearchOptions(limit: 10, orderBy: 'name');
 
         $resultsAsc = $this->getCompanyService()->find($filter, $optionsAsc);
@@ -125,8 +125,8 @@ class CompanyServiceTest extends IntegrationTestCase
         $uniqueId = uniqid('test_');
         $testDomain = 'https://iana.org';
 
-        $domainCollection = new DomainNameCollection(
-            new DomainName($testDomain)
+        $domainCollection = new LinkCollection(
+            primaryLink: new Link($testDomain, 'Test Company')
         );
 
         $company = $this->getCompanyService()->createInstance();
@@ -141,7 +141,7 @@ class CompanyServiceTest extends IntegrationTestCase
             $this->assertNotNull($created->getId());
             $this->assertEquals("Test Company {$uniqueId}", $created->getName());
             $this->assertNotNull($created->getDomainName());
-            $this->assertEquals($testDomain, $created->getDomainName()->getPrimaryUrl());
+            $this->assertEquals($testDomain, $created->getDomainName()->getPrimaryLink()->getUrl());
             $this->assertEquals('Test City', $created->getAddressCity());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
@@ -157,11 +157,11 @@ class CompanyServiceTest extends IntegrationTestCase
 
         // Create a unique company with multiple real but uncommon domains
         $uniqueId = uniqid('test_');
-        $domainCollection = new DomainNameCollection(
-            primaryDomainName: new DomainName('https://ietf.org'),
-            additionalDomainNames: [
-              new DomainName('https://rfc-editor.org'),
-              new DomainName('https://ieee.org'),
+        $domainCollection = new LinkCollection(
+            primaryLink: new Link('https://ietf.org', 'IETF'),
+            additionalLinks: [
+              new Link('https://rfc-editor.org', 'RFC Editor'),
+              new Link('https://ieee.org', 'IEEE'),
             ]
         );
 
@@ -178,10 +178,10 @@ class CompanyServiceTest extends IntegrationTestCase
 
             $domains = $created->getDomainName();
             $this->assertNotNull($domains);
-            $this->assertEquals('https://ietf.org', $domains->getPrimaryUrl());
-            $this->assertCount(2, $domains->getAdditionalDomainNames());
+            $this->assertEquals('https://ietf.org', $domains->getPrimaryLink()->getUrl());
+            $this->assertCount(2, $domains->getAdditionalLinks());
 
-            $additionalDomains = $domains->getAdditionalDomainNames();
+            $additionalDomains = $domains->getAdditionalLinks();
             $this->assertEquals('https://rfc-editor.org', $additionalDomains[0]->getUrl());
             $this->assertEquals('https://ieee.org', $additionalDomains[1]->getUrl());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
@@ -200,8 +200,8 @@ class CompanyServiceTest extends IntegrationTestCase
 
         // Create a company first with a real domain
         $uniqueId = uniqid('test_');
-        $domainCollection = new DomainNameCollection(
-            new DomainName('https://w3.org')
+        $domainCollection = new LinkCollection(
+            primaryLink: new Link('https://w3.org', 'W3C')
         );
 
         $company = $this->getCompanyService()->createInstance();
@@ -235,8 +235,8 @@ class CompanyServiceTest extends IntegrationTestCase
 
         // Create a company first with a real domain
         $uniqueId = uniqid('test_');
-        $domainCollection = new DomainNameCollection(
-            new DomainName('https://unicode.org')
+        $domainCollection = new LinkCollection(
+            primaryLink: new Link('https://unicode.org', 'Unicode')
         );
 
         $company = $this->getCompanyService()->createInstance();
@@ -249,10 +249,10 @@ class CompanyServiceTest extends IntegrationTestCase
             $this->assertNotNull($created->getId());
 
             // Update domain with a different real domain
-            $newDomainCollection = new DomainNameCollection(
-                primaryDomainName: new DomainName('https://kernel.org'),
-                additionalDomainNames: [
-                  new DomainName('https://apache.org'),
+            $newDomainCollection = new LinkCollection(
+                primaryLink: new Link('https://kernel.org', 'Kernel'),
+                additionalLinks: [
+                  new Link('https://apache.org', 'Apache'),
                 ]
             );
             $created->setDomainName($newDomainCollection);
@@ -261,8 +261,8 @@ class CompanyServiceTest extends IntegrationTestCase
 
             $domains = $updated->getDomainName();
             $this->assertNotNull($domains);
-            $this->assertEquals('https://kernel.org', $domains->getPrimaryUrl());
-            $this->assertCount(1, $domains->getAdditionalDomainNames());
+            $this->assertEquals('https://kernel.org', $domains->getPrimaryLink()->getUrl());
+            $this->assertCount(1, $domains->getAdditionalLinks());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
                 $this->markTestSkipped(
@@ -279,8 +279,8 @@ class CompanyServiceTest extends IntegrationTestCase
 
         // Create a company first with a real domain
         $uniqueId = uniqid('test_');
-        $domainCollection = new DomainNameCollection(
-            new DomainName('https://mozilla.org')
+        $domainCollection = new LinkCollection(
+            primaryLink: new Link('https://mozilla.org', 'Mozilla')
         );
 
         $company = $this->getCompanyService()->createInstance();

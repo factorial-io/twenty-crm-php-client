@@ -142,7 +142,7 @@ class CampaignIntegrationTest extends IntegrationTestCase
         }
 
         // Find campaigns (without filter to get all)
-        $filter = new CustomFilter([]);
+        $filter = new CustomFilter(null);
         $options = new SearchOptions();
         $foundCampaigns = $this->getCampaignService()->find($filter, $options);
 

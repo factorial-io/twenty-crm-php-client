@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\DomainName;
-use Factorial\TwentyCrm\DTO\DomainNameCollection;
 use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\DTO\Link;
+use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
@@ -24,8 +24,8 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         // Step 1: Create a company first
         $company = $this->getCompanyService()->createInstance();
         $company->setName($this->generateTestName('AcmeCorp'));
-        $company->setDomainName(new DomainNameCollection(
-            new DomainName('https://acme-' . time() . '.example.com')
+        $company->setDomainName(new LinkCollection(
+            primaryLink: new Link('https://acme-' . time() . '.example.com', 'Acme Corp')
         ));
         $company->setAddressCity('New York');
         $company->setAddressCountry('USA');
@@ -89,15 +89,15 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         // Create two companies
         $company1 = $this->getCompanyService()->createInstance();
         $company1->setName($this->generateTestName('CompanyOne'));
-        $company1->setDomainName(new DomainNameCollection(
-            new DomainName('https://company1-' . time() . '.example.com')
+        $company1->setDomainName(new LinkCollection(
+            primaryLink: new Link('https://company1-' . time() . '.example.com', 'Company One')
         ));
         $company1->setAddressCity('Boston');
 
         $company2 = $this->getCompanyService()->createInstance();
         $company2->setName($this->generateTestName('CompanyTwo'));
-        $company2->setDomainName(new DomainNameCollection(
-            new DomainName('https://company2-' . time() . '.example.com')
+        $company2->setDomainName(new LinkCollection(
+            primaryLink: new Link('https://company2-' . time() . '.example.com', 'Company Two')
         ));
         $company2->setAddressCity('San Francisco');
 

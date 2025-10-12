@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\DTO\EmailCollection;
 use Factorial\TwentyCrm\DTO\FilterBuilder;
+use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\DTO\SearchOptions;
-use Factorial\TwentyCrm\Services\GenericEntityService;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
 /**
@@ -51,30 +51,26 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
     private function createTestPersons(): void
     {
         $testPrefix = $this->generateTestName('FilterTest');
-        $definition = $this->getPersonService()->getDefinition();
 
         // Person 1: John Doe, developer
-        $person1 = new DynamicEntity($definition, [
-            'name' => ['firstName' => 'John', 'lastName' => 'Doe'],
-            'emails' => ['primaryEmail' => $this->generateTestEmail()],
-            'jobTitle' => 'Developer',
-        ]);
+        $person1 = $this->getPersonService()->createInstance();
+        $person1->setName(new Name(firstName: 'John', lastName: 'Doe'));
+        $person1->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person1->setJobTitle('Developer');
         $this->testPersons[] = $this->getPersonService()->create($person1);
 
         // Person 2: Jane Smith, designer
-        $person2 = new DynamicEntity($definition, [
-            'name' => ['firstName' => 'Jane', 'lastName' => 'Smith'],
-            'emails' => ['primaryEmail' => $this->generateTestEmail()],
-            'jobTitle' => 'Designer',
-        ]);
+        $person2 = $this->getPersonService()->createInstance();
+        $person2->setName(new Name(firstName: 'Jane', lastName: 'Smith'));
+        $person2->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person2->setJobTitle('Designer');
         $this->testPersons[] = $this->getPersonService()->create($person2);
 
         // Person 3: Bob Johnson, developer
-        $person3 = new DynamicEntity($definition, [
-            'name' => ['firstName' => 'Bob', 'lastName' => 'Johnson'],
-            'emails' => ['primaryEmail' => $this->generateTestEmail()],
-            'jobTitle' => 'Developer',
-        ]);
+        $person3 = $this->getPersonService()->createInstance();
+        $person3->setName(new Name(firstName: 'Bob', lastName: 'Johnson'));
+        $person3->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person3->setJobTitle('Developer');
         $this->testPersons[] = $this->getPersonService()->create($person3);
 
         // Wait a moment to ensure API consistency
@@ -213,7 +209,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create FilterBuilder with entity definition for validation
-        $definition = $this->getPersonService()->getDefinition();
+        $definition = $this->client->registry()->getDefinition('person');
         $builder = FilterBuilder::forEntity($definition);
 
         // Valid filter - should not throw
@@ -228,7 +224,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        $definition = $this->getPersonService()->getDefinition();
+        $definition = $this->client->registry()->getDefinition('person');
         $builder = FilterBuilder::forEntity($definition);
 
         // Invalid field should throw exception
@@ -404,11 +400,9 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create person with special characters in name
-        $definition = $this->getPersonService()->getDefinition();
-        $specialPerson = new DynamicEntity($definition, [
-            'name' => ['firstName' => 'Test\'s', 'lastName' => 'Person"Quote'],
-            'emails' => ['primaryEmail' => $this->generateTestEmail()],
-        ]);
+        $specialPerson = $this->getPersonService()->createInstance();
+        $specialPerson->setName(new Name(firstName: 'Test\'s', lastName: 'Person"Quote'));
+        $specialPerson->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
 
         $created = $this->getPersonService()->create($specialPerson);
         $this->testPersons[] = $created;
