@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Unit\Metadata;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+use Factorial\TwentyCrm\Enums\RelationType;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Metadata\FieldMetadata;
 use Factorial\TwentyCrm\Metadata\RelationMetadata;
@@ -25,7 +27,7 @@ class EntityDefinitionTest extends TestCase
                 parent::__construct(
                     id: 'field-' . $name,
                     name: $name,
-                    type: 'TEXT',
+                    type: FieldType::TEXT,
                     label: ucfirst($name),
                     objectMetadataId: 'obj-123',
                     isNullable: $isNullable,
@@ -202,9 +204,11 @@ class EntityDefinitionTest extends TestCase
     {
         $companyRelation = new RelationMetadata(
             name: 'company',
-            type: 'MANY_TO_ONE',
-            targetEntity: 'company',
-            foreignKey: 'companyId',
+            label: 'Company',
+            type: RelationType::MANY_TO_ONE,
+            sourceObjectName: 'person',
+            targetObjectName: 'company',
+            targetFieldName: 'personCollection',
         );
 
         $definition = new EntityDefinition(
@@ -225,9 +229,11 @@ class EntityDefinitionTest extends TestCase
     {
         $companyRelation = new RelationMetadata(
             name: 'company',
-            type: 'MANY_TO_ONE',
-            targetEntity: 'company',
-            foreignKey: 'companyId',
+            label: 'Company',
+            type: RelationType::MANY_TO_ONE,
+            sourceObjectName: 'person',
+            targetObjectName: 'company',
+            targetFieldName: 'personCollection',
         );
 
         $definition = new EntityDefinition(
@@ -248,16 +254,20 @@ class EntityDefinitionTest extends TestCase
     {
         $companyRelation = new RelationMetadata(
             name: 'company',
-            type: 'MANY_TO_ONE',
-            targetEntity: 'company',
-            foreignKey: 'companyId',
+            label: 'Company',
+            type: RelationType::MANY_TO_ONE,
+            sourceObjectName: 'person',
+            targetObjectName: 'company',
+            targetFieldName: 'personCollection',
         );
 
         $managerRelation = new RelationMetadata(
             name: 'manager',
-            type: 'MANY_TO_ONE',
-            targetEntity: 'person',
-            foreignKey: 'managerId',
+            label: 'Manager',
+            type: RelationType::MANY_TO_ONE,
+            sourceObjectName: 'person',
+            targetObjectName: 'person',
+            targetFieldName: 'directReports',
         );
 
         $relations = [
@@ -281,8 +291,8 @@ class EntityDefinitionTest extends TestCase
     public function testGetRelationNames(): void
     {
         $relations = [
-            'company' => new RelationMetadata('company', 'MANY_TO_ONE', 'company', 'companyId'),
-            'manager' => new RelationMetadata('manager', 'MANY_TO_ONE', 'person', 'managerId'),
+            'company' => new RelationMetadata('company', 'Company', RelationType::MANY_TO_ONE, 'person', 'company', 'personCollection'),
+            'manager' => new RelationMetadata('manager', 'Manager', RelationType::MANY_TO_ONE, 'person', 'person', 'directReports'),
         ];
 
         $definition = new EntityDefinition(

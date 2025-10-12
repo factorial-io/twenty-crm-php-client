@@ -80,7 +80,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->assertEquals($company->getName(), $retrievedCompany->getName());
         $this->assertNotNull($retrievedCompany->getAddress());
         $this->assertEquals('New York', $retrievedCompany->getAddress()->getCity());
-        $this->assertEquals('USA', $retrievedCompany->getAddress()->getAddressCountry());
+        $this->assertEquals('USA', $retrievedCompany->getAddress()->getCountry());
 
         // Verify domain
         $this->assertNotNull($retrievedCompany->getDomainName());

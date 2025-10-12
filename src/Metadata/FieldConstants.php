@@ -93,10 +93,17 @@ class FieldConstants
                 continue;
             }
 
-            // Check field metadata
+            // Check field metadata - field might be in API format (e.g., 'companyId')
+            // Try direct lookup first
             $fieldMeta = $fieldDefinitions[$fieldName] ?? null;
 
-            // Skip if field not in definition (safety)
+            // If not found and ends with 'Id', might be a RELATION field in API format
+            if (!$fieldMeta && str_ends_with($fieldName, 'Id')) {
+                $entityFieldName = substr($fieldName, 0, -2); // Remove 'Id'
+                $fieldMeta = $fieldDefinitions[$entityFieldName] ?? null;
+            }
+
+            // Skip unknown fields
             if (!$fieldMeta) {
                 continue;
             }

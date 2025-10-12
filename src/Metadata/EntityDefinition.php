@@ -14,6 +14,22 @@ namespace Factorial\TwentyCrm\Metadata;
 class EntityDefinition
 {
     /**
+     * Maps entity field names to API field names.
+     * For RELATION fields: 'company' => 'companyId'
+     *
+     * @var array<string, string>
+     */
+    private array $fieldToApiMap = [];
+
+    /**
+     * Maps API field names to entity field names.
+     * For RELATION fields: 'companyId' => 'company'
+     *
+     * @var array<string, string>
+     */
+    private array $apiToFieldMap = [];
+
+    /**
      * @param string $objectName The singular object name (e.g., 'person', 'company', 'campaign')
      * @param string $objectNamePlural The plural object name (e.g., 'people', 'companies', 'campaigns')
      * @param string $apiEndpoint The REST API endpoint (e.g., '/people', '/companies')
@@ -31,6 +47,26 @@ class EntityDefinition
         public readonly array $nestedObjectMap = [],
         public readonly array $relations = [],
     ) {
+        $this->buildFieldMaps();
+    }
+
+    /**
+     * Build the bidirectional field name mapping tables.
+     *
+     * For RELATION fields, the entity uses 'company' but API uses 'companyId'.
+     *
+     * @return void
+     */
+    private function buildFieldMaps(): void
+    {
+        foreach ($this->fields as $fieldName => $field) {
+            if ($field->type->isRelation()) {
+                // Entity field 'company' maps to API field 'companyId'
+                $apiFieldName = $fieldName . 'Id';
+                $this->fieldToApiMap[$fieldName] = $apiFieldName;
+                $this->apiToFieldMap[$apiFieldName] = $fieldName;
+            }
+        }
     }
 
     /**
@@ -154,5 +190,33 @@ class EntityDefinition
     public function getRelationNames(): array
     {
         return array_keys($this->relations);
+    }
+
+    /**
+     * Map an entity field name to its API field name.
+     *
+     * For most fields, this returns the same name.
+     * For RELATION fields, converts 'company' => 'companyId'.
+     *
+     * @param string $fieldName Entity field name
+     * @return string API field name
+     */
+    public function mapFieldToApi(string $fieldName): string
+    {
+        return $this->fieldToApiMap[$fieldName] ?? $fieldName;
+    }
+
+    /**
+     * Map an API field name to its entity field name.
+     *
+     * For most fields, this returns the same name.
+     * For RELATION fields, converts 'companyId' => 'company'.
+     *
+     * @param string $apiFieldName API field name
+     * @return string Entity field name
+     */
+    public function mapApiToField(string $apiFieldName): string
+    {
+        return $this->apiToFieldMap[$apiFieldName] ?? $apiFieldName;
     }
 }

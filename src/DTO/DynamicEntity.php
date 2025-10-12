@@ -70,12 +70,21 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
      * Automatically transforms API arrays to PHP objects (PhoneCollection, etc.)
      * when field handlers are available.
      *
+     * Uses EntityDefinition field mapping for RELATION fields.
+     *
      * @param string $fieldName The field name
      * @return mixed The field value or null if not set
      */
     public function get(string $fieldName): mixed
     {
-        $value = $this->data[$fieldName] ?? null;
+        // Try entity field name first, then API field name
+        if (array_key_exists($fieldName, $this->data)) {
+            $value = $this->data[$fieldName];
+        } else {
+            // Map to API field name (e.g., 'company' -> 'companyId')
+            $apiFieldName = $this->definition->mapFieldToApi($fieldName);
+            $value = $this->data[$apiFieldName] ?? null;
+        }
 
         if ($value === null) {
             return null;
@@ -103,12 +112,20 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
     /**
      * Set a field value.
      *
+     * Uses EntityDefinition field mapping. For RELATION fields, removes the API field name version.
+     *
      * @param string $fieldName The field name
      * @param mixed $value The field value
      * @return void
      */
     public function set(string $fieldName, mixed $value): void
     {
+        // Remove the API field name if it exists (e.g., remove 'companyId' when setting 'company')
+        $apiFieldName = $this->definition->mapFieldToApi($fieldName);
+        if ($apiFieldName !== $fieldName) {
+            unset($this->data[$apiFieldName]);
+        }
+
         $this->data[$fieldName] = $value;
     }
 
@@ -140,6 +157,8 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
      * Transforms complex PHP objects (PhoneCollection, LinkCollection, etc.)
      * back to API array format for sending to Twenty CRM.
      *
+     * Uses EntityDefinition field mapping for RELATION fields.
+     *
      * @return array<string, mixed> The entity data in API format
      */
     public function toArray(): array
@@ -148,8 +167,9 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
         $handlers = self::getHandlerRegistry();
 
         foreach ($this->data as $fieldName => $value) {
-            // Get field metadata to determine type
-            $field = $this->definition->getField($fieldName);
+            // Try to get field metadata using entity field name
+            $entityFieldName = $this->definition->mapApiToField($fieldName);
+            $field = $this->definition->getField($entityFieldName);
 
             if (!$field) {
                 // Unknown field, pass through as-is
@@ -157,13 +177,14 @@ class DynamicEntity implements \ArrayAccess, \IteratorAggregate, \JsonSerializab
                 continue;
             }
 
-            // Check if we have a handler for this field type
+            // Map to API field name
+            $apiFieldName = $this->definition->mapFieldToApi($entityFieldName);
+
+            // Transform value if we have a handler
             if ($handlers->hasHandler($field->type)) {
-                // Transform PHP object to API array format
-                $result[$fieldName] = $handlers->toApi($field->type, $value);
+                $result[$apiFieldName] = $handlers->toApi($field->type, $value);
             } else {
-                // No handler, pass through as-is
-                $result[$fieldName] = $value;
+                $result[$apiFieldName] = $value;
             }
         }
 

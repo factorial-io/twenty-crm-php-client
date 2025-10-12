@@ -7,6 +7,7 @@ namespace Factorial\TwentyCrm\Tests\Unit\Services;
 use Factorial\TwentyCrm\DTO\CustomFilter;
 use Factorial\TwentyCrm\DTO\DynamicEntity;
 use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Enums\FieldType;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
@@ -32,8 +33,8 @@ class GenericEntityServiceTest extends TestCase
 
         // Create mock field metadata for testing
         $fields = [
-            'name' => new class ('field-1', 'name', 'TEXT', 'Name', 'obj-1', false) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {},
-            'email' => new class ('field-2', 'email', 'EMAIL', 'Email', 'obj-1', true) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {},
+            'name' => new class ('field-1', 'name', FieldType::TEXT, 'Name', 'obj-1', false) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {},
+            'email' => new class ('field-2', 'email', FieldType::EMAILS, 'Email', 'obj-1', true) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {},
         ];
 
         $this->definition = new EntityDefinition(
@@ -207,7 +208,8 @@ class GenericEntityServiceTest extends TestCase
                 $this->callback(function ($options) {
                     return isset($options['json'])
                         && $options['json']['name'] === 'John Doe'
-                        && $options['json']['email'] === 'john@example.com';
+                        && isset($options['json']['email']['primaryEmail'])
+                        && $options['json']['email']['primaryEmail'] === 'john@example.com';
                 })
             )
             ->willReturn([
