@@ -9,6 +9,7 @@ use Factorial\TwentyCrm\Client\TwentyCrmClient;
 use Factorial\TwentyCrm\Http\GuzzleHttpClient;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Registry\EntityRegistry;
+use Factorial\TwentyCrm\Service\CampaignService;
 use Factorial\TwentyCrm\Service\CompanyService;
 use Factorial\TwentyCrm\Service\PersonService;
 use Factorial\TwentyCrm\Services\MetadataService;
@@ -24,6 +25,7 @@ abstract class IntegrationTestCase extends TestCase
     protected array $createdResources = [];
     protected ?PersonService $personService = null;
     protected ?CompanyService $companyService = null;
+    protected ?CampaignService $campaignService = null;
 
     protected function setUp(): void
     {
@@ -60,9 +62,11 @@ abstract class IntegrationTestCase extends TestCase
 
         $personDef = $registry->getDefinition('person');
         $companyDef = $registry->getDefinition('company');
+        $campaignDef = $registry->getDefinition('campaign');
 
         $this->personService = new PersonService($httpClient, $personDef);
         $this->companyService = new CompanyService($httpClient, $companyDef);
+        $this->campaignService = new CampaignService($httpClient, $campaignDef);
     }
 
     protected function tearDown(): void
@@ -127,9 +131,9 @@ abstract class IntegrationTestCase extends TestCase
         foreach (array_reverse($this->createdResources) as $resource) {
             try {
                 match ($resource['type']) {
-                    'person' => $this->personService?->delete($resource['id']),
+                    'person', 'contact' => $this->personService?->delete($resource['id']),
                     'company' => $this->companyService?->delete($resource['id']),
-                    'contact' => $this->client->contacts()->delete($resource['id']),
+                    'campaign' => $this->campaignService?->delete($resource['id']),
                     default => null,
                 };
             } catch (\Exception $e) {
@@ -169,5 +173,38 @@ abstract class IntegrationTestCase extends TestCase
         if (!$this->client) {
             $this->fail('Client not initialized. Check your environment configuration.');
         }
+    }
+
+    /**
+     * Get PersonService instance.
+     */
+    protected function getPersonService(): PersonService
+    {
+        if (!$this->personService) {
+            $this->fail('PersonService not initialized');
+        }
+        return $this->personService;
+    }
+
+    /**
+     * Get CompanyService instance.
+     */
+    protected function getCompanyService(): CompanyService
+    {
+        if (!$this->companyService) {
+            $this->fail('CompanyService not initialized');
+        }
+        return $this->companyService;
+    }
+
+    /**
+     * Get CampaignService instance.
+     */
+    protected function getCampaignService(): CampaignService
+    {
+        if (!$this->campaignService) {
+            $this->fail('CampaignService not initialized');
+        }
+        return $this->campaignService;
     }
 }

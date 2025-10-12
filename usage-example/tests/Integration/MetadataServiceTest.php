@@ -26,7 +26,7 @@ class MetadataServiceTest extends IntegrationTestCase
 
         $this->assertInstanceOf(SelectField::class, $field);
         $this->assertSame('leadSource', $field->name);
-        $this->assertSame('SELECT', $field->type);
+        $this->assertSame('SELECT', $field->type->value);
         $this->assertSame('Lead Source', $field->label);
         $this->assertTrue($field->isNullable);
 

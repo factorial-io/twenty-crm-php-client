@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\Email;
+use Factorial\TwentyCrm\DTO\CustomFilter;
 use Factorial\TwentyCrm\DTO\EmailCollection;
 use Factorial\TwentyCrm\DTO\FilterBuilder;
 use Factorial\TwentyCrm\DTO\Link;
@@ -16,47 +16,40 @@ use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Entity\Person;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
-/**
- * Integration tests for generated PersonService.
- *
- * Tests the generated Person entity and PersonService from
- * usage-example/src/TwentyCrm/Entity/ and usage-example/src/TwentyCrm/Service/
- */
 class PersonServiceTest extends IntegrationTestCase
 {
     public function testCreatePerson(): void
     {
         $this->requireClient();
 
-        // Create Person using generated entity
-        $person = $this->personService->createInstance();
+        $email = $this->generateTestEmail();
+        $person = $this->getPersonService()->createInstance();
 
-        // Set name
+        // Set basic fields
+        $person->setEmails(new EmailCollection(primaryEmail: $email));
         $person->setName(new Name(
             firstName: $this->generateTestName('Person'),
             lastName: 'Test'
         ));
-
-        // Set email
-        $person->setEmails(new EmailCollection(
-            primaryEmail: $this->generateTestEmail()
-        ));
-
-        // Set job title
         $person->setJobTitle('Test Engineer');
 
         // Set phone
         $person->setPhones(new PhoneCollection(
-            primaryPhone: new Phone('+15551234567', 'US', '+1')
+            primaryPhone: new Phone(
+                number: '15551234567',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
         ));
 
-        $created = $this->personService->create($person);
+        $created = $this->getPersonService()->create($person);
 
         $this->assertNotNull($created->getId());
+        $this->assertEquals($email, $created->getEmails()->getPrimaryEmail());
         $this->assertEquals($person->getName()->getFirstName(), $created->getName()->getFirstName());
         $this->assertEquals($person->getName()->getLastName(), $created->getName()->getLastName());
-        $this->assertEquals('Test Engineer', $created->getJobTitle());
-        $this->assertNotNull($created->getPhones());
+        $this->assertEquals($person->getJobTitle(), $created->getJobTitle());
+        $this->assertStringContainsString('5551234567', $created->getPhones()->getPrimaryPhone()->getNumber());
 
         // Track for cleanup
         $this->trackResource('person', $created->getId());
@@ -66,42 +59,49 @@ class PersonServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        // Create a person first
-        $person = $this->personService->createInstance();
+        // Create a person first with full phone details
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
         $person->setName(new Name(
             firstName: $this->generateTestName('GetById'),
             lastName: 'Test'
         ));
-        $person->setEmails(new EmailCollection(
-            primaryEmail: $this->generateTestEmail()
-        ));
         $person->setJobTitle('Senior Developer');
         $person->setPhones(new PhoneCollection(
-            primaryPhone: new Phone('9876543210', 'US', '+1')
+            primaryPhone: new Phone(
+                number: '9876543210',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
         ));
 
-        $created = $this->personService->create($person);
+        $created = $this->getPersonService()->create($person);
         $this->trackResource('person', $created->getId());
 
         // Get by ID
-        $retrieved = $this->personService->getById($created->getId());
+        $retrieved = $this->getPersonService()->getById($created->getId());
 
         $this->assertNotNull($retrieved);
         $this->assertEquals($created->getId(), $retrieved->getId());
-        $this->assertEquals('Senior Developer', $retrieved->getJobTitle());
+        $this->assertEquals($created->getEmails()->getPrimaryEmail(), $retrieved->getEmails()->getPrimaryEmail());
+        $this->assertEquals($created->getName()->getFirstName(), $retrieved->getName()->getFirstName());
+        $this->assertEquals($created->getName()->getLastName(), $retrieved->getName()->getLastName());
+        $this->assertEquals($created->getJobTitle(), $retrieved->getJobTitle());
 
-        // Verify phone
+        // Verify phone details
         $this->assertNotNull($retrieved->getPhones());
-        $phone = $retrieved->getPhones()->getPrimaryPhone();
-        $this->assertNotNull($phone);
-        $this->assertStringContainsString('9876543210', $phone->getNumber());
+        $retrievedPhone = $retrieved->getPhones()->getPrimaryPhone();
+        $this->assertNotNull($retrievedPhone);
+        $this->assertStringContainsString('9876543210', $retrievedPhone->getNumber());
+        $this->assertEquals('US', $retrievedPhone->getCountryCode());
+        $this->assertEquals('+1', $retrievedPhone->getCallingCode());
     }
 
     public function testGetNonExistentPersonReturnsNull(): void
     {
         $this->requireClient();
 
-        $result = $this->personService->getById('non-existent-id-12345');
+        $result = $this->getPersonService()->getById('non-existent-id-12345');
 
         $this->assertNull($result);
     }
@@ -110,66 +110,86 @@ class PersonServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        // Create a person
-        $person = $this->personService->createInstance();
+        // Create a person with comprehensive data including phone
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
         $person->setName(new Name(
             firstName: $this->generateTestName('Update'),
             lastName: 'Original'
         ));
-        $person->setEmails(new EmailCollection(
-            primaryEmail: $this->generateTestEmail()
-        ));
         $person->setJobTitle('Junior Developer');
+        $person->setPhones(new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '5551112222',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
+        ));
 
-        $created = $this->personService->create($person);
+        $created = $this->getPersonService()->create($person);
         $this->trackResource('person', $created->getId());
 
         // Verify initial values
         $this->assertEquals('Original', $created->getName()->getLastName());
         $this->assertEquals('Junior Developer', $created->getJobTitle());
+        $this->assertStringContainsString('5551112222', $created->getPhones()->getPrimaryPhone()->getNumber());
 
-        // Update fields
+        // Update multiple fields including phone
         $created->setJobTitle('Senior Engineer');
-        $created->setName(new Name(
-            firstName: $created->getName()->getFirstName(),
-            lastName: 'Updated'
+        $created->getName()->setLastName('Updated');
+
+        $created->setPhones(new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '5559998888',
+                countryCode: 'DE',
+                callingCode: '+49'
+            )
         ));
 
-        $updated = $this->personService->update($created);
+        $updated = $this->getPersonService()->update($created);
 
         // Verify updates
         $this->assertEquals('Senior Engineer', $updated->getJobTitle());
         $this->assertEquals('Updated', $updated->getName()->getLastName());
         $this->assertEquals($created->getId(), $updated->getId());
+        $this->assertEquals($created->getEmails()->getPrimaryEmail(), $updated->getEmails()->getPrimaryEmail());
+        $this->assertEquals($created->getName()->getFirstName(), $updated->getName()->getFirstName());
+
+        // Verify phone update
+        $this->assertNotNull($updated->getPhones());
+        $updatedPhone = $updated->getPhones()->getPrimaryPhone();
+        $this->assertNotNull($updatedPhone);
+        $this->assertStringContainsString('5559998888', $updatedPhone->getNumber());
+        $this->assertEquals('DE', $updatedPhone->getCountryCode());
+        $this->assertEquals('+49', $updatedPhone->getCallingCode());
     }
 
     public function testDeletePerson(): void
     {
         $this->requireClient();
 
-        // Create a person
-        $person = $this->personService->createInstance();
+        // Create a person with full data
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
         $person->setName(new Name(
             firstName: $this->generateTestName('Delete'),
             lastName: 'Test'
         ));
-        $person->setEmails(new EmailCollection(
-            primaryEmail: $this->generateTestEmail()
-        ));
         $person->setJobTitle('Temporary Position');
 
-        $created = $this->personService->create($person);
+        $created = $this->getPersonService()->create($person);
         $personId = $created->getId();
 
         // Verify it was created
         $this->assertNotNull($personId);
+        $this->assertEquals('Temporary Position', $created->getJobTitle());
 
         // Delete it
-        $result = $this->personService->delete($personId);
+        $result = $this->getPersonService()->delete($personId);
         $this->assertTrue($result);
 
         // Verify it's gone
-        $retrieved = $this->personService->getById($personId);
+        $retrieved = $this->getPersonService()->getById($personId);
         $this->assertNull($retrieved);
     }
 
@@ -177,134 +197,225 @@ class PersonServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        $result = $this->personService->delete('non-existent-id-12345');
+        $result = $this->getPersonService()->delete('non-existent-id-12345');
 
         $this->assertFalse($result);
     }
 
-    public function testFindPersons(): void
+    public function testFindPersonsByEmail(): void
     {
         $this->requireClient();
 
         $email = $this->generateTestEmail();
 
-        // Create a person
-        $person = $this->personService->createInstance();
+        // Create a person with specific email and comprehensive data including phone
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $email));
         $person->setName(new Name(
             firstName: $this->generateTestName('Find'),
             lastName: 'Test'
         ));
-        $person->setEmails(new EmailCollection(
-            primaryEmail: $email
-        ));
         $person->setJobTitle('Data Analyst');
+        $person->setPhones(new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '123456789',
+                countryCode: 'FR',
+                callingCode: '+33'
+            )
+        ));
 
-        $created = $this->personService->create($person);
+        $created = $this->getPersonService()->create($person);
         $this->trackResource('person', $created->getId());
 
-        // Search with filter
+        // Search by email using FilterBuilder
         $filter = FilterBuilder::create()
-            ->equals('emails.primaryEmail', $email)
+            ->where('emails.primaryEmail')->eq($email)
             ->build();
-
-        $results = $this->personService->find($filter, new SearchOptions());
+        $results = $this->getPersonService()->find($filter, new SearchOptions());
 
         $this->assertGreaterThan(0, $results->count());
-        $persons = $results->getPersons();
+        $persons = $results->getEntities();
         $this->assertEquals($email, $persons[0]->getEmails()->getPrimaryEmail());
         $this->assertEquals('Data Analyst', $persons[0]->getJobTitle());
+
+        // Verify phone was stored correctly
+        $this->assertNotNull($persons[0]->getPhones());
+        $foundPhone = $persons[0]->getPhones()->getPrimaryPhone();
+        $this->assertNotNull($foundPhone);
+        $this->assertStringContainsString('123456789', $foundPhone->getNumber());
+        $this->assertEquals('FR', $foundPhone->getCountryCode());
+        $this->assertEquals('+33', $foundPhone->getCallingCode());
+    }
+
+    public function testFindByEmail(): void
+    {
+        $this->requireClient();
+
+        $email = $this->generateTestEmail();
+
+        // Create a person with full profile
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $email));
+        $person->setName(new Name(
+            firstName: $this->generateTestName('FindEmail'),
+            lastName: 'Test'
+        ));
+        $person->setJobTitle('Product Manager');
+
+        $created = $this->getPersonService()->create($person);
+        $this->trackResource('person', $created->getId());
+
+        // Find by email
+        $filter = FilterBuilder::create()
+            ->where('emails.primaryEmail')->eq($email)
+            ->build();
+        $results = $this->getPersonService()->find($filter, new SearchOptions(limit: 1));
+
+        $this->assertGreaterThan(0, $results->count());
+        $found = $results->first();
+
+        $this->assertNotNull($found);
+        $this->assertEquals($email, $found->getEmails()->getPrimaryEmail());
+        $this->assertEquals('Product Manager', $found->getJobTitle());
+    }
+
+    public function testFindByEmailReturnsNullWhenNotFound(): void
+    {
+        $this->requireClient();
+
+        $filter = FilterBuilder::create()
+            ->where('emails.primaryEmail')->eq('nonexistent-' . $this->generateTestEmail())
+            ->build();
+        $results = $this->getPersonService()->find($filter, new SearchOptions(limit: 1));
+
+        $this->assertEquals(0, $results->count());
     }
 
     public function testFindWithSearchOptions(): void
     {
         $this->requireClient();
 
-        // Create multiple test persons
+        // Create multiple test persons with varied data
         $prefix = $this->generateTestName('Options');
         $jobTitles = ['Developer', 'Designer', 'Manager'];
 
         for ($i = 0; $i < 3; $i++) {
-            $person = $this->personService->createInstance();
+            $person = $this->getPersonService()->createInstance();
+            $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
             $person->setName(new Name(
                 firstName: "{$prefix}_{$i}",
                 lastName: 'Test'
             ));
-            $person->setEmails(new EmailCollection(
-                primaryEmail: $this->generateTestEmail()
-            ));
             $person->setJobTitle($jobTitles[$i]);
 
-            $created = $this->personService->create($person);
+            $created = $this->getPersonService()->create($person);
             $this->trackResource('person', $created->getId());
+
+            // Verify creation
+            $this->assertEquals($jobTitles[$i], $created->getJobTitle());
         }
 
         // Search with limit
-        $filter = FilterBuilder::create()->build();
+        $filter = new CustomFilter([]);
         $options = new SearchOptions(limit: 2);
-        $results = $this->personService->find($filter, $options);
+        $results = $this->getPersonService()->find($filter, $options);
 
         $this->assertLessThanOrEqual(2, $results->count());
     }
 
-    public function testCreatePersonWithComplexFields(): void
+    public function testBatchUpsert(): void
     {
         $this->requireClient();
 
-        // Create comprehensive person with all complex fields
-        $person = $this->personService->createInstance();
+        // Batch upsert endpoint may not be available or may require different format
+        $this->markTestSkipped('Batch upsert endpoint requires further investigation');
 
+        $persons = [];
+        for ($i = 0; $i < 3; $i++) {
+            $person = $this->getPersonService()->createInstance();
+            $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+            $person->setName(new Name(
+                firstName: $this->generateTestName("Batch_{$i}"),
+                lastName: 'Test'
+            ));
+            $persons[] = $person;
+        }
+
+        $result = $this->getPersonService()->batchUpsert($persons);
+
+        $this->assertGreaterThan(0, $result->count());
+
+        // Track all for cleanup
+        foreach ($result->getEntities() as $person) {
+            if ($person->getId()) {
+                $this->trackResource('person', $person->getId());
+            }
+        }
+    }
+
+    public function testCreatePersonWithMobilePhonesAndLinks(): void
+    {
+        $this->requireClient();
+
+        // Create comprehensive person with mobile phones and social links
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
         $person->setName(new Name(
             firstName: $this->generateTestName('FullPerson'),
             lastName: 'Test'
         ));
-
-        $person->setEmails(new EmailCollection(
-            primaryEmail: $this->generateTestEmail()
-        ));
-
         $person->setJobTitle('Senior Developer');
 
         $person->setMobilePhones(new PhoneCollection(
-            primaryPhone: new Phone('9876543210', 'US', '+1')
+            primaryPhone: new Phone(
+                number: '9876543210',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
         ));
 
         $person->setLinkedinLink(new LinkCollection(
-            primaryLink: new Link('https://linkedin.com/in/testuser', 'Test User')
+            primaryLink: new Link(
+                url: 'https://linkedin.com/in/testuser',
+                label: 'Test User'
+            )
         ));
 
         $person->setXLink(new LinkCollection(
-            primaryLink: new Link('https://x.com/testuser', '@testuser')
+            primaryLink: new Link(
+                url: 'https://x.com/testuser',
+                label: '@testuser'
+            )
         ));
 
-        $created = $this->personService->create($person);
+        $created = $this->getPersonService()->create($person);
         $this->trackResource('person', $created->getId());
 
-        // Verify all fields
+        // Verify all fields were created
         $this->assertNotNull($created->getId());
+        $this->assertEquals($person->getEmails()->getPrimaryEmail(), $created->getEmails()->getPrimaryEmail());
         $this->assertEquals('Senior Developer', $created->getJobTitle());
 
         // Verify mobile phones
         $this->assertNotNull($created->getMobilePhones());
-        $mobile = $created->getMobilePhones()->getPrimaryPhone();
-        $this->assertNotNull($mobile);
-        $this->assertStringContainsString('9876543210', $mobile->getNumber());
+        $createdMobile = $created->getMobilePhones()->getPrimaryPhone();
+        $this->assertNotNull($createdMobile);
+        $this->assertStringContainsString('9876543210', $createdMobile->getNumber());
+        $this->assertEquals('US', $createdMobile->getCountryCode());
+        $this->assertEquals('+1', $createdMobile->getCallingCode());
 
         // Verify LinkedIn link
-        $linkedIn = $created->getLinkedinLink();
-        if ($linkedIn) {
-            $link = $linkedIn->getPrimaryLink();
-            if ($link) {
-                $this->assertEquals('https://linkedin.com/in/testuser', $link->getUrl());
-            }
-        }
+        $this->assertNotNull($created->getLinkedinLink());
+        $createdLinkedIn = $created->getLinkedinLink()->getPrimaryLink();
+        $this->assertNotNull($createdLinkedIn);
+        $this->assertEquals('https://linkedin.com/in/testuser', $createdLinkedIn->getUrl());
+        $this->assertEquals('Test User', $createdLinkedIn->getLabel());
 
         // Verify X link
-        $xLink = $created->getXLink();
-        if ($xLink) {
-            $link = $xLink->getPrimaryLink();
-            if ($link) {
-                $this->assertEquals('https://x.com/testuser', $link->getUrl());
-            }
-        }
+        $this->assertNotNull($created->getXLink());
+        $createdX = $created->getXLink()->getPrimaryLink();
+        $this->assertNotNull($createdX);
+        $this->assertEquals('https://x.com/testuser', $createdX->getUrl());
+        $this->assertEquals('@testuser', $createdX->getLabel());
     }
 }
