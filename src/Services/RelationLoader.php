@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Services;
 
-use Factorial\TwentyCrm\DTO\CustomFilter;
-use Factorial\TwentyCrm\DTO\DynamicEntity;
 use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Entity\DynamicEntity;
+use Factorial\TwentyCrm\Query\CustomFilter;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;

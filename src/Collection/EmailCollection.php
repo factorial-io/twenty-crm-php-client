@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\DTO;
+namespace Factorial\TwentyCrm\Collection;
+
+use Factorial\TwentyCrm\DTO\Email;
 
 /**
  * Email collection data transfer object.

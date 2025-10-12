@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Entity;
 
+use Factorial\TwentyCrm\Collection\EmailCollection;
+use Factorial\TwentyCrm\Collection\LinkCollection;
+use Factorial\TwentyCrm\Collection\PhoneCollection;
 use Factorial\TwentyCrm\DTO\Address;
-use Factorial\TwentyCrm\DTO\DynamicEntity;
-use Factorial\TwentyCrm\DTO\EmailCollection;
-use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\Name;
-use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 
 /**

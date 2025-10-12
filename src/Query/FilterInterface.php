@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\DTO;
+namespace Factorial\TwentyCrm\Query;
 
 /**
  * Interface for search filter DTOs.

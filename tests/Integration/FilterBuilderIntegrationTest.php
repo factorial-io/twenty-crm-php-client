@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\DynamicEntity;
-use Factorial\TwentyCrm\DTO\FilterBuilder;
+use Factorial\TwentyCrm\Entity\DynamicEntity;
+use Factorial\TwentyCrm\Query\FilterBuilder;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Services\GenericEntityService;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;

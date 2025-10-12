@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Unit\Services;
 
-use Factorial\TwentyCrm\DTO\CustomFilter;
-use Factorial\TwentyCrm\DTO\DynamicEntity;
-use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
+use Factorial\TwentyCrm\Query\CustomFilter;
+use Factorial\TwentyCrm\Entity\DynamicEntity;
+use Factorial\TwentyCrm\Collection\DynamicEntityCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Enums\FieldType;
 use Factorial\TwentyCrm\Exception\ApiException;

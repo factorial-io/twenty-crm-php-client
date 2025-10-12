@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\DTO;
+namespace Factorial\TwentyCrm\Collection;
 
+use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
+use Factorial\TwentyCrm\Query\FilterInterface;
 
 /**
  * Abstract base class for collections with pagination info and lazy loading.
@@ -302,7 +304,7 @@ abstract class AbstractCollection implements \Iterator, \Countable
         }
 
         // Create new SearchOptions with the next cursor
-        $nextSearchOptions = new \Factorial\TwentyCrm\DTO\SearchOptions(
+        $nextSearchOptions = new SearchOptions(
             limit: $this->originalSearchOptions->limit,
             orderBy: $this->originalSearchOptions->orderBy,
             depth: $this->originalSearchOptions->depth,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Generator;
 
-use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
+use Factorial\TwentyCrm\Collection\DynamicEntityCollection;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpFile;

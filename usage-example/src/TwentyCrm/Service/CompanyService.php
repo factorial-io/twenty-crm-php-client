@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Service;
 
 use Factorial\TwentyCrm\Collection\CompanyCollection;
-use Factorial\TwentyCrm\DTO\FilterInterface;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Entity\Company;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
+use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\Services\GenericEntityService;
 
 /**

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Collection;
 
-use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
 use Factorial\TwentyCrm\Entity\Campaign;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 

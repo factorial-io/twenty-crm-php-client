@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Unit\DTO;
 
-use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\Entity\DynamicEntity;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Tests\TestCase;
 

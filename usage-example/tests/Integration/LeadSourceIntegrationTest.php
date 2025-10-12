@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\Collection\EmailCollection;
 use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\CustomFilter;
+use Factorial\TwentyCrm\Query\CustomFilter;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Entity\Campaign;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;

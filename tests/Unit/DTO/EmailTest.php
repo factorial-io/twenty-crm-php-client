@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Tests\Unit\DTO;
 
 use Factorial\TwentyCrm\DTO\Email;
-use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\Collection\EmailCollection;
 use Factorial\TwentyCrm\Tests\TestCase;
 
 class EmailTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\DTO;
+namespace Factorial\TwentyCrm\Query;
 
 /**
  * Data Transfer Object for custom handcoded filter strings.

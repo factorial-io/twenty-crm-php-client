@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Collection\LinkCollection;
 use Factorial\TwentyCrm\Enums\FieldType;
-use Factorial\TwentyCrm\DTO\LinkCollection;
 
 /**
  * Handler for LINKS field type.

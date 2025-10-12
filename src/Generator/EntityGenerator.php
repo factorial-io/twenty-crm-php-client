@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Generator;
 
-use Factorial\TwentyCrm\DTO\DynamicEntity;
+use Factorial\TwentyCrm\Entity\DynamicEntity;
 use Factorial\TwentyCrm\FieldHandlers\FieldHandlerRegistry;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Generator;
 
-use Factorial\TwentyCrm\DTO\FilterInterface;
+use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;

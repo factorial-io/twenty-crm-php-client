@@ -6,8 +6,10 @@ parameters:
 
     # Ignore generated code
     excludePaths:
-        - src/Entity/*
-        - src/Collection/*
+        # Generated entity and collection classes (used for examples/testing)
+        - usage-example/src/TwentyCrm/Entity/*
+        - usage-example/src/TwentyCrm/Collection/*
+        - usage-example/src/TwentyCrm/Service/*
 
     # Report unmatched ignored errors
     reportUnmatchedIgnoredErrors: true

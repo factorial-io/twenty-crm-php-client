@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
-use Factorial\TwentyCrm\DTO\PhoneCollection;
+use Factorial\TwentyCrm\Collection\PhoneCollection;
 use Factorial\TwentyCrm\Enums\FieldType;
 
 /**

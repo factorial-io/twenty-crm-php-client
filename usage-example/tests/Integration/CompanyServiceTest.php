@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Tests\Integration;
 
 use Factorial\TwentyCrm\DTO\Address;
-use Factorial\TwentyCrm\DTO\CustomFilter;
-use Factorial\TwentyCrm\DTO\FilterBuilder;
+use Factorial\TwentyCrm\Query\CustomFilter;
+use Factorial\TwentyCrm\Query\FilterBuilder;
 use Factorial\TwentyCrm\DTO\Link;
-use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\Collection\LinkCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 

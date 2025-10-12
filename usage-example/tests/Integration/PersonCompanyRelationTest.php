@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Tests\Integration;
 
 use Factorial\TwentyCrm\DTO\Address;
-use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\Collection\EmailCollection;
 use Factorial\TwentyCrm\DTO\Link;
-use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\Collection\LinkCollection;
 use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 

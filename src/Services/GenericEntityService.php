@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Services;
 
-use Factorial\TwentyCrm\DTO\DynamicEntity;
-use Factorial\TwentyCrm\DTO\DynamicEntityCollection;
-use Factorial\TwentyCrm\DTO\FilterInterface;
+use Factorial\TwentyCrm\Collection\DynamicEntityCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Entity\DynamicEntity;
+use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;

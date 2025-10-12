@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\DTO;
+namespace Factorial\TwentyCrm\Entity;
 
 use Factorial\TwentyCrm\FieldHandlers\FieldHandlerRegistry;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;

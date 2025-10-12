@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Factorial\TwentyCrm\DTO;
+namespace Factorial\TwentyCrm\Query;
 
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Metadata\SelectField;

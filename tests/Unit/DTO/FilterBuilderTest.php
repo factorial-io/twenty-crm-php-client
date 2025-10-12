@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Unit\DTO;
 
-use Factorial\TwentyCrm\DTO\FilterBuilder;
-use Factorial\TwentyCrm\DTO\CustomFilter;
+use Factorial\TwentyCrm\Query\FilterBuilder;
+use Factorial\TwentyCrm\Query\CustomFilter;
 use Factorial\TwentyCrm\Enums\FieldType;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Metadata\EnumOption;
