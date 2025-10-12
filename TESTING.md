@@ -175,19 +175,20 @@ Extend `Factorial\TwentyCrm\Tests\TestCase`:
 namespace Factorial\TwentyCrm\Tests\Unit;
 
 use Factorial\TwentyCrm\Tests\TestCase;
-use Factorial\TwentyCrm\DTO\Contact;
+use Factorial\TwentyCrm\DTO\Name;
+use Factorial\TwentyCrm\DTO\EmailCollection;
 
 class MyTest extends TestCase
 {
     public function testSomething(): void
     {
-        // Use factory to create test data
-        $contact = ContactFactory::create([
-            'firstName' => 'Test',
-            'lastName' => 'User',
-        ]);
+        // Create test data using DTOs directly
+        $name = new Name(
+            firstName: 'Test',
+            lastName: 'User'
+        );
 
-        $this->assertEquals('Test', $contact->getFirstName());
+        $this->assertEquals('Test', $name->getFirstName());
     }
 }
 ```
@@ -202,24 +203,30 @@ Extend `Factorial\TwentyCrm\Tests\IntegrationTestCase`:
 namespace Factorial\TwentyCrm\Tests\Integration;
 
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
-use Factorial\TwentyCrm\DTO\Contact;
+use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\DTO\Name;
 
 class MyIntegrationTest extends IntegrationTestCase
 {
-    public function testCreateContact(): void
+    public function testCreatePerson(): void
     {
         $this->requireClient();
 
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create person using service's createInstance method
+        $person = $this->getPersonService()->createInstance();
+
+        // Set properties using DTOs
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('MyTest'),
             lastName: 'Test'
-        );
+        ));
+        $person->setJobTitle('Test Engineer');
 
-        $created = $this->client->contacts()->create($contact);
+        $created = $this->getPersonService()->create($person);
 
         // IMPORTANT: Track for cleanup
-        $this->trackResource('contact', $created->getId());
+        $this->trackResource('person', $created->getId());
 
         $this->assertNotNull($created->getId());
     }
@@ -240,29 +247,45 @@ class MyIntegrationTest extends IntegrationTestCase
 - `trackResource(string $type, string $id)` - Track resource for cleanup
 - `generateTestName(string $base)` - Generate unique test name with prefix
 - `generateTestEmail()` - Generate unique test email address
+- `getPersonService()` - Get person service instance
+- `getCompanyService()` - Get company service instance
 
-### Using Test Factories
+### Creating Test Data
 
-The library includes factory classes to easily create test data:
+Tests create data using DTOs directly. Here are some common patterns:
 
 ```php
-use Factorial\TwentyCrm\Tests\Helpers\ContactFactory;
-use Factorial\TwentyCrm\Tests\Helpers\CompanyFactory;
+use Factorial\TwentyCrm\DTO\Name;
+use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\DTO\PhoneCollection;
+use Factorial\TwentyCrm\DTO\Phone;
+use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\DTO\Link;
+use Factorial\TwentyCrm\DTO\Address;
 
-// Create contact with default data
-$contact = ContactFactory::create();
+// Create a person
+$person = $this->getPersonService()->createInstance();
+$person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+$person->setName(new Name(
+    firstName: $this->generateTestName('Test'),
+    lastName: 'User'
+));
+$person->setJobTitle('Software Engineer');
+$person->setPhones(new PhoneCollection(
+    primaryPhone: new Phone(
+        number: '5551234567',
+        countryCode: 'US',
+        callingCode: '+1'
+    )
+));
 
-// Create contact with custom data
-$contact = ContactFactory::create([
-    'firstName' => 'Custom',
-    'lastName' => 'Name',
-]);
-
-// Create contact with unique identifier
-$contact = ContactFactory::createUnique('MY_TEST_');
-
-// Create mock API response
-$apiResponse = ContactFactory::createApiResponse();
+// Create a company
+$company = $this->getCompanyService()->createInstance();
+$company->setName("Test Company " . uniqid());
+$company->setDomainName(new LinkCollection(
+    primaryLink: new Link('https://example.com', 'Example')
+));
+$company->setAddress(new Address(addressCity: 'Test City'));
 ```
 
 ## Troubleshooting
