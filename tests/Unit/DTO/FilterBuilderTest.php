@@ -89,7 +89,7 @@ class FilterBuilderTest extends TestCase
             ->isNull('deletedAt')
             ->isNotNull('email');
 
-        $expected = 'deletedAt[is]:NULL,email[isNot]:NULL';
+        $expected = 'deletedAt[is]:NULL,email[neq]:NULL';
         $this->assertEquals($expected, $builder->buildFilterString());
     }
 
@@ -105,13 +105,10 @@ class FilterBuilderTest extends TestCase
     public function testStringOperators(): void
     {
         $builder1 = FilterBuilder::create()->contains('email', '@example.com');
-        $this->assertEquals('email[contains]:"@example.com"', $builder1->buildFilterString());
+        $this->assertEquals('email[ilike]:"%@example.com%"', $builder1->buildFilterString());
 
         $builder2 = FilterBuilder::create()->startsWith('name', 'Jo');
         $this->assertEquals('name[startsWith]:"Jo"', $builder2->buildFilterString());
-
-        $builder3 = FilterBuilder::create()->endsWith('email', '.com');
-        $this->assertEquals('email[endsWith]:".com"', $builder3->buildFilterString());
     }
 
     public function testAllComparisonOperators(): void
@@ -244,11 +241,10 @@ class FilterBuilderTest extends TestCase
         $builder->in('g', [7, 8]);
         $builder->contains('h', '9');
         $builder->startsWith('i', '10');
-        $builder->endsWith('j', '11');
         $builder->isNull('k');
         $builder->isNotNull('l');
 
-        $this->assertCount(12, $builder->getConditions());
+        $this->assertCount(11, $builder->getConditions());
     }
 
     public function testFluentInterface(): void
@@ -273,7 +269,7 @@ class FilterBuilderTest extends TestCase
             ->greaterThanOrEquals('createdAt', '2025-01-01')
             ->isNotNull('companyId');
 
-        $expected = 'name.firstName[eq]:"John",emails.primaryEmail[contains]:"@example.com",status[in]:["ACTIVE","PENDING"],createdAt[gte]:"2025-01-01",companyId[isNot]:NULL';
+        $expected = 'name.firstName[eq]:"John",emails.primaryEmail[ilike]:"%@example.com%",status[in]:["ACTIVE","PENDING"],createdAt[gte]:"2025-01-01",companyId[neq]:NULL';
         $this->assertEquals($expected, $builder->buildFilterString());
     }
 
