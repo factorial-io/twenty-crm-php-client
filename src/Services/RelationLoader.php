@@ -20,12 +20,17 @@ use Factorial\TwentyCrm\Registry\EntityRegistry;
  * - Lazy loading: Load relations on-demand via $entity->loadRelation('company')
  * - Eager loading: Pre-load relations with SearchOptions(with: ['company'])
  * - Bidirectional relations: Person � Company and Company � People
+ *
+ * Configuration:
+ * - Default relation limit can be set via constructor (default: 100)
+ * - For large relation sets, provide custom SearchOptions with pagination cursors
  */
 final class RelationLoader
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly EntityRegistry $registry,
+        private readonly int $defaultRelationLimit = 100,
     ) {
     }
 
@@ -34,11 +39,15 @@ final class RelationLoader
      *
      * @param DynamicEntity $entity Source entity
      * @param RelationMetadata $relation Relation to load
+     * @param SearchOptions|null $options Custom options for loading (pagination, limits). If null, uses default limit.
      * @return DynamicEntity|DynamicEntity[]|null Loaded entity, array of entities, or null
      * @throws ApiException
      */
-    public function loadRelation(DynamicEntity $entity, RelationMetadata $relation): DynamicEntity|array|null
-    {
+    public function loadRelation(
+        DynamicEntity $entity,
+        RelationMetadata $relation,
+        ?SearchOptions $options = null
+    ): DynamicEntity|array|null {
         // Get the target entity definition
         $targetDefinition = $this->registry->getDefinition($relation->targetObjectName);
         if (!$targetDefinition) {
@@ -54,11 +63,11 @@ final class RelationLoader
         }
 
         if ($relation->isOneToMany()) {
-            return $this->loadOneToMany($entity, $relation, $targetService);
+            return $this->loadOneToMany($entity, $relation, $targetService, $options);
         }
 
         if ($relation->isManyToMany()) {
-            return $this->loadManyToMany($entity, $relation, $targetService);
+            return $this->loadManyToMany($entity, $relation, $targetService, $options);
         }
 
         return null;
@@ -107,13 +116,15 @@ final class RelationLoader
      * @param DynamicEntity $entity Source entity
      * @param RelationMetadata $relation Relation metadata
      * @param GenericEntityService $targetService Service for target entity
+     * @param SearchOptions|null $options Custom search options (pagination, limit)
      * @return DynamicEntity[]
      * @throws ApiException
      */
     private function loadOneToMany(
         DynamicEntity $entity,
         RelationMetadata $relation,
-        GenericEntityService $targetService
+        GenericEntityService $targetService,
+        ?SearchOptions $options = null
     ): array {
         // For ONE_TO_MANY, we query the target entity where the foreign key matches source ID
         // e.g., find all people where person.company.id = $company->getId()
@@ -123,8 +134,9 @@ final class RelationLoader
         $filterString = "{$relation->targetFieldName}.id eq '{$entity->getId()}'";
         $filter = new CustomFilter($filterString);
 
-        $options = new SearchOptions(limit: 100); // TODO: Make configurable
-        $collection = $targetService->find($filter, $options);
+        // Use provided options or create default with configured limit
+        $searchOptions = $options ?? new SearchOptions(limit: $this->defaultRelationLimit);
+        $collection = $targetService->find($filter, $searchOptions);
 
         return $collection->getEntities();
     }
@@ -137,18 +149,20 @@ final class RelationLoader
      * @param DynamicEntity $entity Source entity
      * @param RelationMetadata $relation Relation metadata
      * @param GenericEntityService $targetService Service for target entity
+     * @param SearchOptions|null $options Custom search options (pagination, limit)
      * @return DynamicEntity[]
      * @throws ApiException
      */
     private function loadManyToMany(
         DynamicEntity $entity,
         RelationMetadata $relation,
-        GenericEntityService $targetService
+        GenericEntityService $targetService,
+        ?SearchOptions $options = null
     ): array {
         // MANY_TO_MANY typically uses a junction table
         // Implementation depends on Twenty CRM's specific approach
         // For now, treat similar to ONE_TO_MANY
-        return $this->loadOneToMany($entity, $relation, $targetService);
+        return $this->loadOneToMany($entity, $relation, $targetService, $options);
     }
 
     /**

@@ -199,6 +199,7 @@ class FilterBuilder implements FilterInterface
      *
      * Automatically wraps the value with SQL wildcards (%) for substring matching.
      * Uses case-insensitive ILIKE operator for more forgiving searches.
+     * Special LIKE characters (%, _, \) in the value are escaped to match literally.
      *
      * @param string $field Field name
      * @param string $value Substring to search for
@@ -206,7 +207,8 @@ class FilterBuilder implements FilterInterface
      */
     public function contains(string $field, string $value): self
     {
-        return $this->where($field, 'ilike', "%{$value}%");
+        $escaped = $this->escapeLikeValue($value);
+        return $this->where($field, 'ilike', "%{$escaped}%");
     }
 
     /**
@@ -402,6 +404,25 @@ class FilterBuilder implements FilterInterface
 
         // Numbers, other types
         return (string) $value;
+    }
+
+    /**
+     * Escape special LIKE wildcard characters in a value.
+     *
+     * Escapes backslash (\), percent (%), and underscore (_) to prevent
+     * SQL injection and ensure they are matched literally in LIKE queries.
+     *
+     * @param string $value Value to escape
+     * @return string Escaped value
+     */
+    private function escapeLikeValue(string $value): string
+    {
+        // Escape in order: backslash first, then wildcards
+        // This prevents double-escaping issues
+        $value = str_replace('\\', '\\\\', $value); // \ -> \\
+        $value = str_replace('%', '\\%', $value);   // % -> \%
+        $value = str_replace('_', '\\_', $value);   // _ -> \_
+        return $value;
     }
 
     /**

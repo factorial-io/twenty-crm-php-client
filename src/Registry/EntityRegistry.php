@@ -205,6 +205,10 @@ class EntityRegistry
         foreach ($objectData['fields'] as $fieldData) {
             $fieldName = $fieldData['name'] ?? null;
             if (!$fieldName) {
+                $this->logger->warning('Skipping field with missing name', [
+                    'object' => $objectData['nameSingular'] ?? 'unknown',
+                    'fieldData' => $fieldData,
+                ]);
                 continue;
             }
 
@@ -215,7 +219,13 @@ class EntityRegistry
                 $field = FieldMetadataFactory::fromArray($fieldData);
                 $fields[$fieldName] = $field;
             } catch (\Exception $e) {
-                // Skip invalid fields
+                // Log and skip invalid fields
+                $this->logger->warning('Failed to parse field metadata', [
+                    'object' => $objectData['nameSingular'] ?? 'unknown',
+                    'fieldName' => $fieldName,
+                    'error' => $e->getMessage(),
+                    'fieldData' => $fieldData,
+                ]);
                 continue;
             }
         }
@@ -261,6 +271,12 @@ class EntityRegistry
             $fieldType = $fieldData['type'] ?? null;
 
             if (!$fieldName || !$fieldType) {
+                if (!$fieldName) {
+                    $this->logger->warning('Skipping relation field with missing name', [
+                        'object' => $objectData['nameSingular'] ?? 'unknown',
+                        'fieldData' => $fieldData,
+                    ]);
+                }
                 continue;
             }
 
@@ -273,9 +289,21 @@ class EntityRegistry
                 $relation = $this->buildRelationMetadata($fieldName, $fieldData);
                 if ($relation) {
                     $relations[$fieldName] = $relation;
+                } else {
+                    $this->logger->warning('Relation metadata builder returned null', [
+                        'object' => $objectData['nameSingular'] ?? 'unknown',
+                        'fieldName' => $fieldName,
+                        'fieldData' => $fieldData,
+                    ]);
                 }
             } catch (\Exception $e) {
-                // Skip invalid relations
+                // Log and skip invalid relations
+                $this->logger->warning('Failed to parse relation metadata', [
+                    'object' => $objectData['nameSingular'] ?? 'unknown',
+                    'fieldName' => $fieldName,
+                    'error' => $e->getMessage(),
+                    'fieldData' => $fieldData,
+                ]);
                 continue;
             }
         }
