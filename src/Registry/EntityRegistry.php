@@ -10,6 +10,8 @@ use Factorial\TwentyCrm\Metadata\FieldMetadata;
 use Factorial\TwentyCrm\Metadata\FieldMetadataFactory;
 use Factorial\TwentyCrm\Metadata\RelationMetadata;
 use Factorial\TwentyCrm\Services\MetadataService;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Registry for discovering and managing entity definitions from Twenty CRM.
@@ -34,6 +36,7 @@ class EntityRegistry
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly MetadataService $metadata,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -119,10 +122,13 @@ class EntityRegistry
      */
     private function discoverEntities(): void
     {
+        $this->logger->debug('Discovering entities from Twenty CRM');
+
         try {
             $response = $this->httpClient->request('GET', 'metadata/objects');
 
             if (!isset($response['data']['objects']) || !is_array($response['data']['objects'])) {
+                $this->logger->debug('No entities found in response');
                 return;
             }
 
@@ -132,9 +138,15 @@ class EntityRegistry
                     $this->definitions[$definition->objectName] = $definition;
                 }
             }
+
+            $this->logger->debug('Entity discovery completed', [
+                'count' => count($this->definitions),
+                'entities' => array_keys($this->definitions),
+            ]);
         } catch (\Exception $e) {
-            // Log error but don't throw - allow graceful degradation
-            // In production, you might want to log this
+            $this->logger->error('Failed to discover entities', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

@@ -370,16 +370,50 @@ use Factorial\TwentyCrm\Auth\BearerTokenAuth;
 $auth = new BearerTokenAuth('your-api-token');
 ```
 
-### Optional Logging
+### Logging
+
+The library supports PSR-3 logging for debugging and monitoring API interactions.
 
 ```php
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Factorial\TwentyCrm\Http\GuzzleHttpClient;
+use Factorial\TwentyCrm\Client\TwentyCrmClient;
 
+// Create logger
 $logger = new Logger('twenty-crm');
-$logger->pushHandler(new StreamHandler('twenty.log', Logger::INFO));
+$logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
+$logger->pushHandler(new StreamHandler('logs/twenty-crm.log', Logger::INFO));
 
-// Pass logger to HTTP client if supported
+// Pass logger to HTTP client
+$httpClient = new GuzzleHttpClient(
+    $guzzle,
+    $httpFactory,
+    $streamFactory,
+    $auth,
+    'https://api.twenty.com/rest/',
+    $logger  // Logger automatically logs all HTTP requests/responses
+);
+
+// Pass logger to client (propagates to all services)
+$client = new TwentyCrmClient($httpClient, $logger);
+
+// All operations are now logged
+$persons = $client->entity('person')->find($filter, $options);
+```
+
+**Log Levels:**
+- **DEBUG**: API requests/responses, entity operations, service initialization
+- **ERROR**: Authentication failures, API errors, network errors
+
+**Example Log Output:**
+```
+[DEBUG] Twenty CRM client initialized
+[DEBUG] Creating entity service {"entity":"person"}
+[DEBUG] Finding entities {"entity":"people","filter":"...","options":{...}}
+[DEBUG] Twenty CRM API request {"method":"GET","url":"https://...","body":null}
+[DEBUG] Twenty CRM API response {"status":200,"body":"..."}
+[DEBUG] Found entities {"entity":"people","count":15}
 ```
 
 ## API Reference

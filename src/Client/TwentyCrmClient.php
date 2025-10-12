@@ -8,6 +8,8 @@ use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Registry\EntityRegistry;
 use Factorial\TwentyCrm\Services\GenericEntityService;
 use Factorial\TwentyCrm\Services\MetadataService;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Main Twenty CRM client implementation.
@@ -30,7 +32,9 @@ final class TwentyCrmClient implements ClientInterface
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
+        $this->logger->debug('Twenty CRM client initialized');
     }
 
     /**
@@ -43,7 +47,9 @@ final class TwentyCrmClient implements ClientInterface
             throw new \InvalidArgumentException("Unknown entity: {$name}");
         }
 
-        return new GenericEntityService($this->httpClient, $definition);
+        $this->logger->debug('Creating entity service', ['entity' => $name]);
+
+        return new GenericEntityService($this->httpClient, $definition, $this->logger);
     }
 
     /**
@@ -52,7 +58,7 @@ final class TwentyCrmClient implements ClientInterface
     public function registry(): EntityRegistry
     {
         if ($this->registry === null) {
-            $this->registry = new EntityRegistry($this->httpClient, $this->metadata());
+            $this->registry = new EntityRegistry($this->httpClient, $this->metadata(), $this->logger);
         }
 
         return $this->registry;
@@ -64,7 +70,7 @@ final class TwentyCrmClient implements ClientInterface
     public function metadata(): MetadataService
     {
         if ($this->metadataService === null) {
-            $this->metadataService = new MetadataService($this->httpClient);
+            $this->metadataService = new MetadataService($this->httpClient, $this->logger);
         }
 
         return $this->metadataService;

@@ -12,6 +12,8 @@ use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Metadata\FieldConstants;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Generic entity service for CRUD operations on any Twenty CRM entity.
@@ -24,6 +26,7 @@ class GenericEntityService
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly EntityDefinition $definition,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -53,11 +56,24 @@ class GenericEntityService
             $queryParams['filter'] = $filter->buildFilterString();
         }
 
+        $this->logger->debug('Finding entities', [
+            'entity' => $this->definition->objectNamePlural,
+            'filter' => $filter->buildFilterString(),
+            'options' => $queryParams,
+        ]);
+
         $requestOptions = ['query' => $queryParams];
 
         $response = $this->httpClient->request('GET', $this->definition->apiEndpoint, $requestOptions);
 
-        return $this->parseCollectionResponse($response);
+        $collection = $this->parseCollectionResponse($response);
+
+        $this->logger->debug('Found entities', [
+            'entity' => $this->definition->objectNamePlural,
+            'count' => $collection->count(),
+        ]);
+
+        return $collection;
     }
 
     /**
@@ -68,12 +84,28 @@ class GenericEntityService
      */
     public function getById(string $id): ?DynamicEntity
     {
+        $this->logger->debug('Getting entity by ID', [
+            'entity' => $this->definition->objectName,
+            'id' => $id,
+        ]);
+
         try {
             $response = $this->httpClient->request('GET', $this->definition->apiEndpoint . '/' . $id);
 
-            return $this->parseEntityResponse($response);
+            $entity = $this->parseEntityResponse($response);
+
+            $this->logger->debug('Entity found', [
+                'entity' => $this->definition->objectName,
+                'id' => $id,
+            ]);
+
+            return $entity;
         } catch (ApiException $e) {
             if ($e->getCode() === 404 || $e->getCode() === 400) {
+                $this->logger->debug('Entity not found', [
+                    'entity' => $this->definition->objectName,
+                    'id' => $id,
+                ]);
                 return null;
             }
             throw $e;
@@ -90,11 +122,23 @@ class GenericEntityService
     {
         $data = $entity->toArray();
 
+        $this->logger->debug('Creating entity', [
+            'entity' => $this->definition->objectName,
+            'data' => $data,
+        ]);
+
         $response = $this->httpClient->request('POST', $this->definition->apiEndpoint, [
             'json' => $data,
         ]);
 
-        return $this->parseEntityResponse($response);
+        $created = $this->parseEntityResponse($response);
+
+        $this->logger->debug('Entity created', [
+            'entity' => $this->definition->objectName,
+            'id' => $created->getId(),
+        ]);
+
+        return $created;
     }
 
     /**
@@ -108,6 +152,9 @@ class GenericEntityService
     {
         $id = $entity->getId();
         if (!$id) {
+            $this->logger->error('Cannot update entity without ID', [
+                'entity' => $this->definition->objectName,
+            ]);
             throw new \InvalidArgumentException('Entity must have an ID to be updated');
         }
 
@@ -116,11 +163,24 @@ class GenericEntityService
         // Filter out read-only/system fields that shouldn't be updated
         $data = $this->filterUpdatableFields($data);
 
+        $this->logger->debug('Updating entity', [
+            'entity' => $this->definition->objectName,
+            'id' => $id,
+            'data' => $data,
+        ]);
+
         $response = $this->httpClient->request('PATCH', $this->definition->apiEndpoint . '/' . $id, [
             'json' => $data,
         ]);
 
-        return $this->parseEntityResponse($response);
+        $updated = $this->parseEntityResponse($response);
+
+        $this->logger->debug('Entity updated', [
+            'entity' => $this->definition->objectName,
+            'id' => $id,
+        ]);
+
+        return $updated;
     }
 
     /**
@@ -131,12 +191,26 @@ class GenericEntityService
      */
     public function delete(string $id): bool
     {
+        $this->logger->debug('Deleting entity', [
+            'entity' => $this->definition->objectName,
+            'id' => $id,
+        ]);
+
         try {
             $this->httpClient->request('DELETE', $this->definition->apiEndpoint . '/' . $id);
+
+            $this->logger->debug('Entity deleted', [
+                'entity' => $this->definition->objectName,
+                'id' => $id,
+            ]);
 
             return true;
         } catch (ApiException $e) {
             if ($e->getCode() === 404 || $e->getCode() === 400) {
+                $this->logger->debug('Entity not found for deletion', [
+                    'entity' => $this->definition->objectName,
+                    'id' => $id,
+                ]);
                 return false;
             }
             throw $e;
@@ -153,11 +227,23 @@ class GenericEntityService
     {
         $data = array_map(fn (DynamicEntity $entity) => $entity->toArray(), $entities);
 
+        $this->logger->debug('Batch upserting entities', [
+            'entity' => $this->definition->objectNamePlural,
+            'count' => count($entities),
+        ]);
+
         $response = $this->httpClient->request('POST', '/batch' . $this->definition->apiEndpoint, [
             'json' => ['data' => $data],
         ]);
 
-        return $this->parseCollectionResponse($response);
+        $collection = $this->parseCollectionResponse($response);
+
+        $this->logger->debug('Batch upsert completed', [
+            'entity' => $this->definition->objectNamePlural,
+            'count' => $collection->count(),
+        ]);
+
+        return $collection;
     }
 
     /**

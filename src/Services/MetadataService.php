@@ -8,6 +8,8 @@ use Factorial\TwentyCrm\Http\HttpClientInterface;
 use Factorial\TwentyCrm\Metadata\FieldMetadata;
 use Factorial\TwentyCrm\Metadata\FieldMetadataFactory;
 use Factorial\TwentyCrm\Metadata\SelectField;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Service for fetching and caching field metadata from Twenty CRM.
@@ -30,6 +32,7 @@ class MetadataService
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -129,6 +132,8 @@ class MetadataService
      */
     private function fetchAllFields(): void
     {
+        $this->logger->debug('Fetching all field metadata');
+
         try {
             // The metadata endpoint is at /rest/metadata/fields
             // Note: metadata endpoints don't accept query parameters
@@ -145,8 +150,15 @@ class MetadataService
                     // fields endpoint doesn't include object information.
                     // Use fetchFieldMetadataByObject() for object-specific lookups.
                 }
+
+                $this->logger->debug('Field metadata loaded', [
+                    'count' => count($this->allFieldsCache),
+                ]);
             }
         } catch (\Exception $e) {
+            $this->logger->error('Failed to fetch field metadata', [
+                'error' => $e->getMessage(),
+            ]);
             // Log error but don't throw - allow graceful degradation
             $this->allFieldsCache = [];
         }

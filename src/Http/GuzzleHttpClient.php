@@ -63,21 +63,22 @@ final class GuzzleHttpClient implements HttpClientInterface
         }
 
         try {
+            // Log request
             $this->logger->debug('Twenty CRM API request', [
-              'method' => $method,
-              'uri' => $uri,
-              'has_body' => !empty($options['json']),
+                'method' => $method,
+                'url' => (string) $request->getUri(),
+                'body' => $options['json'] ?? null,
             ]);
-
-            // Debug: Print actual URL being requested
-            $actualUrl = (string) $request->getUri();
-            if (getenv('TWENTY_DEBUG_HTTP') === 'true') {
-                echo "\n[HTTP DEBUG] {$method} {$actualUrl}\n";
-            }
 
             $response = $this->httpClient->sendRequest($request);
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();
+
+            // Log response
+            $this->logger->debug('Twenty CRM API response', [
+                'status' => $statusCode,
+                'body' => $body,
+            ]);
 
             if ($statusCode >= 200 && $statusCode < 300) {
                 return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
@@ -85,28 +86,63 @@ final class GuzzleHttpClient implements HttpClientInterface
 
             // Handle error responses.
             if ($statusCode === 401) {
+                $this->logger->error('Authentication failed', [
+                    'status' => $statusCode,
+                    'response' => $body,
+                ]);
                 throw new AuthenticationException('Authentication failed: ' . $body, $statusCode);
             }
 
+            $this->logger->error('API request failed', [
+                'method' => $method,
+                'url' => (string) $request->getUri(),
+                'status' => $statusCode,
+                'response' => $body,
+            ]);
             throw new ApiException('API request failed with status ' . $statusCode, $statusCode, $body);
         } catch (ClientException $e) {
             $statusCode = $e->getResponse()->getStatusCode();
             $body = (string) $e->getResponse()->getBody();
 
             if ($statusCode === 401) {
+                $this->logger->error('Authentication failed', [
+                    'status' => $statusCode,
+                    'response' => $body,
+                ]);
                 throw new AuthenticationException('Authentication failed: ' . $body, $statusCode, $e);
             }
 
+            $this->logger->error('Client error', [
+                'method' => $method,
+                'url' => (string) $request->getUri(),
+                'status' => $statusCode,
+                'response' => $body,
+                'error' => $e->getMessage(),
+            ]);
             throw new ApiException('Client error: ' . $e->getMessage(), $statusCode, $body, $e);
         } catch (ServerException $e) {
             $statusCode = $e->getResponse()->getStatusCode();
             $body = (string) $e->getResponse()->getBody();
 
+            $this->logger->error('Server error', [
+                'method' => $method,
+                'url' => (string) $request->getUri(),
+                'status' => $statusCode,
+                'response' => $body,
+                'error' => $e->getMessage(),
+            ]);
             throw new ApiException('Server error: ' . $e->getMessage(), $statusCode, $body, $e);
         } catch (GuzzleException $e) {
-            $this->logger->error('HTTP client error: ' . $e->getMessage());
+            $this->logger->error('HTTP client error', [
+                'method' => $method,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
             throw new ApiException('HTTP client error: ' . $e->getMessage(), 0, null, $e);
         } catch (\JsonException $e) {
+            $this->logger->error('Invalid JSON response', [
+                'error' => $e->getMessage(),
+            ]);
             throw new ApiException('Invalid JSON response: ' . $e->getMessage(), 0, null, $e);
         }
     }
