@@ -3,3 +3,14 @@ parameters:
     paths:
         - src
     tmpDir: var/phpstan
+
+    # Ignore generated code
+    excludePaths:
+        - src/Entity/*
+        - src/Collection/*
+
+    # Report unmatched ignored errors
+    reportUnmatchedIgnoredErrors: true
+
+    # Allow for bleeding edge features
+    treatPhpDocTypesAsCertain: false

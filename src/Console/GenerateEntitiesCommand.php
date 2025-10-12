@@ -40,7 +40,8 @@ class GenerateEntitiesCommand extends Command
         $this
             ->setName('generate:entities')
             ->setDescription('Generate typed entity classes from Twenty CRM metadata')
-            ->setHelp(<<<'HELP'
+            ->setHelp(
+                <<<'HELP'
 The <info>generate:entities</info> command generates typed PHP entity classes from your Twenty CRM instance metadata.
 
 <comment>Using a configuration file:</comment>

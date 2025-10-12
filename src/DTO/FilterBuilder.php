@@ -363,7 +363,7 @@ class FilterBuilder implements FilterInterface
         // Handle IN operator specially (array values)
         // Format: field[in]:["value1","value2"]
         if ($operator === 'in' && is_array($value)) {
-            $valueStr = '[' . implode(',', array_map(fn($v) => $this->formatValue($v), $value)) . ']';
+            $valueStr = '[' . implode(',', array_map(fn ($v) => $this->formatValue($v), $value)) . ']';
             return "{$field}[{$operator}]:{$valueStr}";
         }
 

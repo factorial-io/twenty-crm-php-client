@@ -40,7 +40,7 @@ class EmailCollection
         $additionalEmails = [];
         if (isset($data['additionalEmails']) && is_array($data['additionalEmails'])) {
             // Filter out empty values
-            $additionalEmails = array_filter($data['additionalEmails'], fn($email) => !empty($email));
+            $additionalEmails = array_filter($data['additionalEmails'], fn ($email) => !empty($email));
         }
 
         return new self($primaryEmail, array_values($additionalEmails));
@@ -239,7 +239,7 @@ class EmailCollection
         }
 
         $this->additionalEmails = array_values(
-            array_filter($this->additionalEmails, fn($e) => $e !== $email)
+            array_filter($this->additionalEmails, fn ($e) => $e !== $email)
         );
 
         return $this;
