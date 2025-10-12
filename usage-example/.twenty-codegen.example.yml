@@ -1,0 +1,44 @@
+# Twenty CRM Code Generation Configuration
+# Copy this file to .twenty-codegen.yml and customize for your project
+#
+# Usage: bin/twenty-generate --config=.twenty-codegen.yml
+
+# Base namespace for generated code
+# Entity, Service, and Collection subdirectories will be created automatically
+namespace: MyApp\TwentyCrm
+
+# Output directory for generated code
+# Entity/, Service/, and Collection/ subdirectories will be created here
+output_dir: src/TwentyCrm
+
+# Twenty CRM API configuration
+# You can use ${VAR_NAME} syntax to reference environment variables
+api_url: ${TWENTY_API_BASE_URI}
+api_token: ${TWENTY_API_TOKEN}
+
+# Alternative: Hardcode values (not recommended for production)
+# api_url: https://your-instance.twenty.com/rest/
+# api_token: your_api_token_here
+
+# List of entities to generate
+# These should match the entity names in your Twenty CRM instance
+# Common entities: person, company, opportunity, note, task, etc.
+entities:
+  - person
+  - company
+  - opportunity
+
+# Code generation options
+options:
+  # Generate service classes with CRUD operations
+  # Creates: PersonService, CompanyService, etc.
+  generate_services: true
+  
+  # Generate typed collection classes
+  # Creates: PersonCollection, CompanyCollection, etc.
+  generate_collections: true
+  
+  # Overwrite existing files during generation
+  # Default: false (will fail if files already exist)
+  # Use --overwrite flag to override this setting
+  overwrite: false
