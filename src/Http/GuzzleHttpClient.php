@@ -69,6 +69,12 @@ final class GuzzleHttpClient implements HttpClientInterface
               'has_body' => !empty($options['json']),
             ]);
 
+            // Debug: Print actual URL being requested
+            $actualUrl = (string) $request->getUri();
+            if (getenv('TWENTY_DEBUG_HTTP') === 'true') {
+                echo "\n[HTTP DEBUG] {$method} {$actualUrl}\n";
+            }
+
             $response = $this->httpClient->sendRequest($request);
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();

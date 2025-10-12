@@ -87,9 +87,9 @@ class FilterBuilder implements FilterInterface
      */
     public function where(string $field, string $operator, mixed $value): self
     {
-        // Validate operator
+        // Validate operator (aligned with Twenty CRM API operators)
         $validOperators = [
-            'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'in', 'contains', 'startsWith', 'endsWith', 'is', 'isNot'
+            'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'in', 'containsAny', 'is', 'startsWith', 'like', 'ilike'
         ];
         if (!in_array($operator, $validOperators, true)) {
             $validOpsStr = implode(', ', $validOperators);
@@ -195,7 +195,10 @@ class FilterBuilder implements FilterInterface
     }
 
     /**
-     * Add contains condition (substring search).
+     * Add contains condition (substring search using ILIKE with wildcards).
+     *
+     * Automatically wraps the value with SQL wildcards (%) for substring matching.
+     * Uses case-insensitive ILIKE operator for more forgiving searches.
      *
      * @param string $field Field name
      * @param string $value Substring to search for
@@ -203,7 +206,31 @@ class FilterBuilder implements FilterInterface
      */
     public function contains(string $field, string $value): self
     {
-        return $this->where($field, 'contains', $value);
+        return $this->where($field, 'ilike', "%{$value}%");
+    }
+
+    /**
+     * Add LIKE condition (case-sensitive pattern matching).
+     *
+     * @param string $field Field name
+     * @param string $value Pattern to match
+     * @return self
+     */
+    public function like(string $field, string $value): self
+    {
+        return $this->where($field, 'like', $value);
+    }
+
+    /**
+     * Add ILIKE condition (case-insensitive pattern matching).
+     *
+     * @param string $field Field name
+     * @param string $value Pattern to match
+     * @return self
+     */
+    public function ilike(string $field, string $value): self
+    {
+        return $this->where($field, 'ilike', $value);
     }
 
     /**
@@ -219,18 +246,6 @@ class FilterBuilder implements FilterInterface
     }
 
     /**
-     * Add ends with condition.
-     *
-     * @param string $field Field name
-     * @param string $value Suffix to match
-     * @return self
-     */
-    public function endsWith(string $field, string $value): self
-    {
-        return $this->where($field, 'endsWith', $value);
-    }
-
-    /**
      * Add IS NULL condition.
      *
      * @param string $field Field name
@@ -242,14 +257,17 @@ class FilterBuilder implements FilterInterface
     }
 
     /**
-     * Add IS NOT NULL condition.
+     * Add IS NOT NULL condition using neq operator.
+     *
+     * Note: Twenty CRM API doesn't have a dedicated "IS NOT NULL" operator.
+     * This uses neq (not equals) with NULL as a workaround.
      *
      * @param string $field Field name
      * @return self
      */
     public function isNotNull(string $field): self
     {
-        return $this->where($field, 'isNot', 'NULL');
+        return $this->where($field, 'neq', 'NULL');
     }
 
     /**
@@ -350,8 +368,8 @@ class FilterBuilder implements FilterInterface
         }
 
         // Handle NULL values
-        // Format: field[is]:NULL or field[isNot]:NULL
-        if ($value === 'NULL' && in_array($operator, ['is', 'isNot'], true)) {
+        // Format: field[is]:NULL or field[neq]:NULL
+        if ($value === 'NULL' && in_array($operator, ['is', 'neq'], true)) {
             return "{$field}[{$operator}]:NULL";
         }
 
