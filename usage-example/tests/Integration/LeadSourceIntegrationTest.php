@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\Contact;
+use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
 /**
@@ -12,119 +13,123 @@ use Factorial\TwentyCrm\Tests\IntegrationTestCase;
  */
 class LeadSourceIntegrationTest extends IntegrationTestCase
 {
-    public function testCreateContactWithLeadSource(): void
+    public function testCreatePersonWithLeadSource(): void
     {
         $this->requireClient();
 
-        // Create a contact with a lead source (using valid enum value)
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create a person with a lead source (using valid enum value)
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('LeadTest'),
-            lastName: 'User',
-            jobTitle: 'Marketing Manager',
-            leadSource: 'INBOUND'
-        );
+            lastName: 'User'
+        ));
+        $person->setJobTitle('Marketing Manager');
+        $person->setLeadSource('INBOUND');
 
-        $createdContact = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $createdContact->getId());
+        $createdPerson = $this->getPersonService()->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
-        $this->assertNotNull($createdContact->getId());
-        $this->assertEquals($contact->getEmail(), $createdContact->getEmail());
-        $this->assertEquals($contact->getFirstName(), $createdContact->getFirstName());
-        $this->assertEquals($contact->getLastName(), $createdContact->getLastName());
-        $this->assertEquals('INBOUND', $createdContact->getLeadSource());
+        $this->assertNotNull($createdPerson->getId());
+        $this->assertEquals($person->getEmails()->getPrimaryEmail(), $createdPerson->getEmails()->getPrimaryEmail());
+        $this->assertEquals($person->getName()->getFirstName(), $createdPerson->getName()->getFirstName());
+        $this->assertEquals($person->getName()->getLastName(), $createdPerson->getName()->getLastName());
+        $this->assertEquals('INBOUND', $createdPerson->getLeadSource());
 
         // Retrieve and verify the lead source persisted
-        $retrievedContact = $this->client->contacts()->getById($createdContact->getId());
+        $retrievedPerson = $this->getPersonService()->getById($createdPerson->getId());
 
-        $this->assertNotNull($retrievedContact);
-        $this->assertEquals($createdContact->getId(), $retrievedContact->getId());
-        $this->assertEquals('INBOUND', $retrievedContact->getLeadSource());
+        $this->assertNotNull($retrievedPerson);
+        $this->assertEquals($createdPerson->getId(), $retrievedPerson->getId());
+        $this->assertEquals('INBOUND', $retrievedPerson->getLeadSource());
     }
 
-    public function testUpdateContactLeadSource(): void
+    public function testUpdatePersonLeadSource(): void
     {
         $this->requireClient();
 
-        // Create a contact with initial lead source (using valid enum value)
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create a person with initial lead source (using valid enum value)
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('UpdateLead'),
-            lastName: 'User',
-            jobTitle: 'Sales Rep',
-            leadSource: 'INBOUND_PARTNER'
-        );
+            lastName: 'User'
+        ));
+        $person->setJobTitle('Sales Rep');
+        $person->setLeadSource('INBOUND_PARTNER');
 
-        $createdContact = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $createdContact->getId());
+        $createdPerson = $this->getPersonService()->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
         // Verify initial lead source
-        $this->assertEquals('INBOUND_PARTNER', $createdContact->getLeadSource());
+        $this->assertEquals('INBOUND_PARTNER', $createdPerson->getLeadSource());
 
         // Update the lead source (using valid enum value)
-        $createdContact->setLeadSource('SALES_TEAM');
-        $updatedContact = $this->client->contacts()->update($createdContact);
+        $createdPerson->setLeadSource('SALES_TEAM');
+        $updatedPerson = $this->getPersonService()->update($createdPerson);
 
         // Verify the lead source was updated
-        $this->assertEquals('SALES_TEAM', $updatedContact->getLeadSource());
+        $this->assertEquals('SALES_TEAM', $updatedPerson->getLeadSource());
 
         // Retrieve and verify
-        $retrievedContact = $this->client->contacts()->getById($updatedContact->getId());
-        $this->assertEquals('SALES_TEAM', $retrievedContact->getLeadSource());
+        $retrievedPerson = $this->getPersonService()->getById($updatedPerson->getId());
+        $this->assertEquals('SALES_TEAM', $retrievedPerson->getLeadSource());
     }
 
-    public function testCreateContactWithoutLeadSource(): void
+    public function testCreatePersonWithoutLeadSource(): void
     {
         $this->requireClient();
 
-        // Create a contact without a lead source
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create a person without a lead source
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('NoLead'),
-            lastName: 'User',
-            jobTitle: 'Developer'
-        );
+            lastName: 'User'
+        ));
+        $person->setJobTitle('Developer');
 
-        $createdContact = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $createdContact->getId());
+        $createdPerson = $this->getPersonService()->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
-        $this->assertNotNull($createdContact->getId());
-        $this->assertNull($createdContact->getLeadSource());
+        $this->assertNotNull($createdPerson->getId());
+        $this->assertNull($createdPerson->getLeadSource());
 
         // Retrieve and verify
-        $retrievedContact = $this->client->contacts()->getById($createdContact->getId());
-        $this->assertNotNull($retrievedContact);
-        $this->assertNull($retrievedContact->getLeadSource());
+        $retrievedPerson = $this->getPersonService()->getById($createdPerson->getId());
+        $this->assertNotNull($retrievedPerson);
+        $this->assertNull($retrievedPerson->getLeadSource());
     }
 
     public function testUpdateBetweenDifferentLeadSources(): void
     {
         $this->requireClient();
 
-        // Create a contact with a lead source (using valid enum value)
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create a person with a lead source (using valid enum value)
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('ChangeLead'),
-            lastName: 'User',
-            jobTitle: 'Product Manager',
-            leadSource: 'OUTBOUND_OTHER'
-        );
+            lastName: 'User'
+        ));
+        $person->setJobTitle('Product Manager');
+        $person->setLeadSource('OUTBOUND_OTHER');
 
-        $createdContact = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $createdContact->getId());
+        $createdPerson = $this->getPersonService()->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
         // Verify initial lead source
-        $this->assertEquals('OUTBOUND_OTHER', $createdContact->getLeadSource());
+        $this->assertEquals('OUTBOUND_OTHER', $createdPerson->getLeadSource());
 
         // Change to a different lead source
-        $createdContact->setLeadSource('CALENDAR_EVENT');
-        $updatedContact = $this->client->contacts()->update($createdContact);
+        $createdPerson->setLeadSource('CALENDAR_EVENT');
+        $updatedPerson = $this->getPersonService()->update($createdPerson);
 
         // Verify the lead source was updated
-        $this->assertEquals('CALENDAR_EVENT', $updatedContact->getLeadSource());
+        $this->assertEquals('CALENDAR_EVENT', $updatedPerson->getLeadSource());
 
         // Retrieve and verify
-        $retrievedContact = $this->client->contacts()->getById($updatedContact->getId());
-        $this->assertEquals('CALENDAR_EVENT', $retrievedContact->getLeadSource());
+        $retrievedPerson = $this->getPersonService()->getById($updatedPerson->getId());
+        $this->assertEquals('CALENDAR_EVENT', $retrievedPerson->getLeadSource());
     }
 }

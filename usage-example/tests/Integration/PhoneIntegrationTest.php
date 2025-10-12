@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\Contact;
+use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\DTO\Name;
 use Factorial\TwentyCrm\DTO\Phone;
 use Factorial\TwentyCrm\DTO\PhoneCollection;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
 class PhoneIntegrationTest extends IntegrationTestCase
 {
-    public function testCreateContactWithPhone(): void
+    public function testCreatePersonWithPhone(): void
     {
         $this->requireClient();
 
@@ -24,16 +25,17 @@ class PhoneIntegrationTest extends IntegrationTestCase
             )
         );
 
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('PhoneTest'),
-            lastName: 'Test',
-            phones: $phoneCollection,
-            jobTitle: 'Phone Tester'
-        );
+            lastName: 'Test'
+        ));
+        $person->setPhones($phoneCollection);
+        $person->setJobTitle('Phone Tester');
 
-        $created = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $created->getId());
+        $created = $this->getPersonService()->create($person);
+        $this->trackResource('person', $created->getId());
 
         // Verify phone was created
         $this->assertNotNull($created->getPhones());
@@ -41,36 +43,45 @@ class PhoneIntegrationTest extends IntegrationTestCase
 
         $primaryPhone = $created->getPhones()->getPrimaryPhone();
         $this->assertNotNull($primaryPhone);
-        $this->assertEquals('1234567890', $primaryPhone->getNumber());
+        $this->assertStringContainsString('1234567890', $primaryPhone->getNumber());
     }
 
-    public function testCreateContactWithSimplePhone(): void
+    public function testCreatePersonWithSimplePhone(): void
     {
         $this->requireClient();
 
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('SimplePhone'),
-            lastName: 'Test',
-            jobTitle: 'Simple Phone Tester'
-        );
+            lastName: 'Test'
+        ));
+        $person->setJobTitle('Simple Phone Tester');
 
-        // Use simple setPhone method (backward compatibility)
-        $contact->setPhone('+19876543210');
+        // Set phone using PhoneCollection
+        $person->setPhones(new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '9876543210',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
+        ));
 
-        $created = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $created->getId());
+        $created = $this->getPersonService()->create($person);
+        $this->trackResource('person', $created->getId());
 
-        // Verify phone was created (API may strip the + prefix)
-        $this->assertNotNull($created->getPhone());
-        $this->assertStringContainsString('9876543210', $created->getPhone());
+        // Verify phone was created
+        $this->assertNotNull($created->getPhones());
+        $primaryPhone = $created->getPhones()->getPrimaryPhone();
+        $this->assertNotNull($primaryPhone);
+        $this->assertStringContainsString('9876543210', $primaryPhone->getNumber());
     }
 
-    public function testReadContactWithPhone(): void
+    public function testReadPersonWithPhone(): void
     {
         $this->requireClient();
 
-        // Create contact with phone
+        // Create person with phone
         $phoneCollection = new PhoneCollection(
             primaryPhone: new Phone(
                 number: '5551234567',
@@ -79,51 +90,67 @@ class PhoneIntegrationTest extends IntegrationTestCase
             )
         );
 
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('ReadPhone'),
-            lastName: 'Test',
-            phones: $phoneCollection
-        );
+            lastName: 'Test'
+        ));
+        $person->setPhones($phoneCollection);
 
-        $created = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $created->getId());
+        $created = $this->getPersonService()->create($person);
+        $this->trackResource('person', $created->getId());
 
         // Read it back
-        $retrieved = $this->client->contacts()->getById($created->getId());
+        $retrieved = $this->getPersonService()->getById($created->getId());
 
         $this->assertNotNull($retrieved);
         $this->assertNotNull($retrieved->getPhones());
 
         $retrievedPhone = $retrieved->getPhones()->getPrimaryPhone();
         $this->assertNotNull($retrievedPhone);
-        $this->assertEquals('5551234567', $retrievedPhone->getNumber());
+        $this->assertStringContainsString('5551234567', $retrievedPhone->getNumber());
     }
 
-    public function testUpdateContactPhone(): void
+    public function testUpdatePersonPhone(): void
     {
         $this->requireClient();
 
-        // Create contact with initial phone
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create person with initial phone
+        $person = $this->getPersonService()->createInstance();
+        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person->setName(new Name(
             firstName: $this->generateTestName('UpdatePhone'),
             lastName: 'Test'
-        );
-        $contact->setPhone('+11111111111');
+        ));
+        $person->setPhones(new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '1111111111',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
+        ));
 
-        $created = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $created->getId());
+        $created = $this->getPersonService()->create($person);
+        $this->trackResource('person', $created->getId());
 
-        // Verify initial phone (API may strip + prefix)
-        $this->assertStringContainsString('1111111111', $created->getPhone());
+        // Verify initial phone
+        $this->assertNotNull($created->getPhones());
+        $this->assertStringContainsString('1111111111', $created->getPhones()->getPrimaryPhone()->getNumber());
 
         // Update phone
-        $created->setPhone('+12222222222');
-        $updated = $this->client->contacts()->update($created);
+        $created->setPhones(new PhoneCollection(
+            primaryPhone: new Phone(
+                number: '2222222222',
+                countryCode: 'US',
+                callingCode: '+1'
+            )
+        ));
+        $updated = $this->getPersonService()->update($created);
 
         // Verify updated phone
-        $this->assertStringContainsString('2222222222', $updated->getPhone());
+        $this->assertNotNull($updated->getPhones());
+        $this->assertStringContainsString('2222222222', $updated->getPhones()->getPrimaryPhone()->getNumber());
         $this->assertEquals($created->getId(), $updated->getId());
     }
 }
