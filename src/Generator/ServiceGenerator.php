@@ -116,9 +116,11 @@ class ServiceGenerator
 
     private function addCreateInstanceMethod(ClassType $class, string $entityClassName): void
     {
+        $entityFullClass = $this->config->getEntityNamespace() . '\\' . $entityClassName;
+
         $method = $class->addMethod('createInstance');
         $method->setPublic();
-        $method->setReturnType($entityClassName);
+        $method->setReturnType($entityFullClass);
         $method->addComment("Create a new empty {$entityClassName} instance.\n");
         $method->addComment("@return {$entityClassName}");
 
@@ -127,9 +129,11 @@ class ServiceGenerator
 
     private function addFindMethod(ClassType $class, string $entityClassName, string $collectionClassName): void
     {
+        $collectionFullClass = $this->config->getCollectionNamespace() . '\\' . $collectionClassName;
+
         $method = $class->addMethod('find');
         $method->setPublic();
-        $method->setReturnType($collectionClassName);
+        $method->setReturnType($collectionFullClass);
         $method->addComment("Find {$entityClassName} entities matching filter.\n");
         $method->addComment("@param FilterInterface \$filter Search filter");
         $method->addComment("@param SearchOptions \$options Search options");
@@ -150,9 +154,11 @@ class ServiceGenerator
 
     private function addGetByIdMethod(ClassType $class, string $entityClassName): void
     {
+        $entityFullClass = $this->config->getEntityNamespace() . '\\' . $entityClassName;
+
         $method = $class->addMethod('getById');
         $method->setPublic();
-        $method->setReturnType($entityClassName);
+        $method->setReturnType($entityFullClass);
         $method->setReturnNullable(true);
         $method->addComment("Get {$entityClassName} by ID.\n");
         $method->addComment("@param string \$id Entity ID");
@@ -171,14 +177,16 @@ class ServiceGenerator
 
     private function addCreateMethod(ClassType $class, string $entityClassName): void
     {
+        $entityFullClass = $this->config->getEntityNamespace() . '\\' . $entityClassName;
+
         $method = $class->addMethod('create');
         $method->setPublic();
-        $method->setReturnType($entityClassName);
+        $method->setReturnType($entityFullClass);
         $method->addComment("Create a new {$entityClassName}.\n");
         $method->addComment("@param {$entityClassName} \$entity Entity to create");
         $method->addComment("@return {$entityClassName}");
 
-        $method->addParameter('entity')->setType($entityClassName);
+        $method->addParameter('entity')->setType($entityFullClass);
 
         $method->setBody(
             '$created = $this->genericService->create($entity);' . "\n" .
@@ -188,14 +196,16 @@ class ServiceGenerator
 
     private function addUpdateMethod(ClassType $class, string $entityClassName): void
     {
+        $entityFullClass = $this->config->getEntityNamespace() . '\\' . $entityClassName;
+
         $method = $class->addMethod('update');
         $method->setPublic();
-        $method->setReturnType($entityClassName);
+        $method->setReturnType($entityFullClass);
         $method->addComment("Update an existing {$entityClassName}.\n");
         $method->addComment("@param {$entityClassName} \$entity Entity to update");
         $method->addComment("@return {$entityClassName}");
 
-        $method->addParameter('entity')->setType($entityClassName);
+        $method->addParameter('entity')->setType($entityFullClass);
 
         $method->setBody(
             '$updated = $this->genericService->update($entity);' . "\n" .
@@ -219,9 +229,11 @@ class ServiceGenerator
 
     private function addBatchUpsertMethod(ClassType $class, string $entityClassName, string $collectionClassName): void
     {
+        $collectionFullClass = $this->config->getCollectionNamespace() . '\\' . $collectionClassName;
+
         $method = $class->addMethod('batchUpsert');
         $method->setPublic();
-        $method->setReturnType($collectionClassName);
+        $method->setReturnType($collectionFullClass);
         $method->addComment("Batch upsert multiple {$entityClassName} entities.\n");
         $method->addComment("@param {$entityClassName}[] \$entities Entities to upsert");
         $method->addComment("@return {$collectionClassName}");

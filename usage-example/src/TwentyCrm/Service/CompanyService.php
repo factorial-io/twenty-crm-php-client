@@ -38,7 +38,7 @@ final class CompanyService
      *
      * @return Company
      */
-    public function createInstance(): \Company
+    public function createInstance(): Company
     {
         return new Company($this->definition);
     }
@@ -50,7 +50,7 @@ final class CompanyService
      * @param SearchOptions $options Search options
      * @return CompanyCollection
      */
-    public function find(FilterInterface $filter, SearchOptions $options): \CompanyCollection
+    public function find(FilterInterface $filter, SearchOptions $options): CompanyCollection
     {
         $dynamicEntities = $this->genericService->find($filter, $options);
         $entities = [];
@@ -68,7 +68,7 @@ final class CompanyService
      * @param string $id Entity ID
      * @return Company|null
      */
-    public function getById(string $id): ?\Company
+    public function getById(string $id): ?Company
     {
         $entity = $this->genericService->getById($id);
 
@@ -85,7 +85,7 @@ final class CompanyService
      * @param Company $entity Entity to create
      * @return Company
      */
-    public function create(\Company $entity): \Company
+    public function create(Company $entity): Company
     {
         $created = $this->genericService->create($entity);
         return new Company($this->definition, $created->toArray());
@@ -97,7 +97,7 @@ final class CompanyService
      * @param Company $entity Entity to update
      * @return Company
      */
-    public function update(\Company $entity): \Company
+    public function update(Company $entity): Company
     {
         $updated = $this->genericService->update($entity);
         return new Company($this->definition, $updated->toArray());
@@ -120,7 +120,7 @@ final class CompanyService
      * @param Company[] $entities Entities to upsert
      * @return CompanyCollection
      */
-    public function batchUpsert(array $entities): \CompanyCollection
+    public function batchUpsert(array $entities): CompanyCollection
     {
         $dynamicEntities = $this->genericService->batchUpsert($entities);
         $typedEntities = [];

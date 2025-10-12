@@ -38,7 +38,7 @@ final class CampaignService
      *
      * @return Campaign
      */
-    public function createInstance(): \Campaign
+    public function createInstance(): Campaign
     {
         return new Campaign($this->definition);
     }
@@ -50,7 +50,7 @@ final class CampaignService
      * @param SearchOptions $options Search options
      * @return CampaignCollection
      */
-    public function find(FilterInterface $filter, SearchOptions $options): \CampaignCollection
+    public function find(FilterInterface $filter, SearchOptions $options): CampaignCollection
     {
         $dynamicEntities = $this->genericService->find($filter, $options);
         $entities = [];
@@ -68,7 +68,7 @@ final class CampaignService
      * @param string $id Entity ID
      * @return Campaign|null
      */
-    public function getById(string $id): ?\Campaign
+    public function getById(string $id): ?Campaign
     {
         $entity = $this->genericService->getById($id);
 
@@ -85,7 +85,7 @@ final class CampaignService
      * @param Campaign $entity Entity to create
      * @return Campaign
      */
-    public function create(\Campaign $entity): \Campaign
+    public function create(Campaign $entity): Campaign
     {
         $created = $this->genericService->create($entity);
         return new Campaign($this->definition, $created->toArray());
@@ -97,7 +97,7 @@ final class CampaignService
      * @param Campaign $entity Entity to update
      * @return Campaign
      */
-    public function update(\Campaign $entity): \Campaign
+    public function update(Campaign $entity): Campaign
     {
         $updated = $this->genericService->update($entity);
         return new Campaign($this->definition, $updated->toArray());
@@ -120,7 +120,7 @@ final class CampaignService
      * @param Campaign[] $entities Entities to upsert
      * @return CampaignCollection
      */
-    public function batchUpsert(array $entities): \CampaignCollection
+    public function batchUpsert(array $entities): CampaignCollection
     {
         $dynamicEntities = $this->genericService->batchUpsert($entities);
         $typedEntities = [];
