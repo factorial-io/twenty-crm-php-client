@@ -68,7 +68,7 @@ class EntityRegistryTest extends TestCase
                                 [
                                     'id' => 'field-2',
                                     'name' => 'email',
-                                    'type' => 'EMAIL',
+                                    'type' => 'EMAILS',
                                     'label' => 'Email',
                                     'isNullable' => true,
                                     'isCustom' => false,
@@ -270,16 +270,22 @@ class EntityRegistryTest extends TestCase
                                 [
                                     'id' => 'field-1',
                                     'name' => 'company',
-                                    'type' => 'RELATION_MANY_TO_ONE',
+                                    'type' => 'RELATION',
                                     'label' => 'Company',
                                     'isNullable' => true,
                                     'isCustom' => false,
-                                    'relationDefinition' => [
-                                        'foreignKeyFieldName' => 'companyId',
-                                        'inverseSideFieldName' => 'people',
+                                    'relation' => [
+                                        'type' => 'MANY_TO_ONE',
+                                        'sourceObjectMetadata' => [
+                                            'nameSingular' => 'person',
+                                            'namePlural' => 'people',
+                                        ],
                                         'targetObjectMetadata' => [
                                             'nameSingular' => 'company',
                                             'namePlural' => 'companies',
+                                        ],
+                                        'targetFieldMetadata' => [
+                                            'name' => 'people',
                                         ],
                                     ],
                                 ],
@@ -297,10 +303,11 @@ class EntityRegistryTest extends TestCase
         $relation = $definition->getRelation('company');
         $this->assertNotNull($relation);
         $this->assertSame('company', $relation->name);
-        $this->assertSame('MANY_TO_ONE', $relation->type);
-        $this->assertSame('company', $relation->targetEntity);
-        $this->assertSame('companyId', $relation->foreignKey);
-        $this->assertSame('people', $relation->inverseName);
+        $this->assertSame('Company', $relation->label);
+        $this->assertTrue($relation->isManyToOne());
+        $this->assertSame('person', $relation->sourceObjectName);
+        $this->assertSame('company', $relation->targetObjectName);
+        $this->assertSame('people', $relation->targetFieldName);
     }
 
     public function testSkipsInvalidObjects(): void
