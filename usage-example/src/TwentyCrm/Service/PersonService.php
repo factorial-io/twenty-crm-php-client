@@ -34,13 +34,14 @@ final class PersonService
     }
 
     /**
-     * Create a new empty Person instance.
+     * Create a new Person instance.
      *
+     * @param array $data Optional initial data for the entity
      * @return Person
      */
-    public function createInstance(): Person
+    public function createInstance(array $data = []): Person
     {
-        return new Person($this->definition);
+        return new Person($this->definition, $data);
     }
 
     /**

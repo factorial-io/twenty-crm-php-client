@@ -121,10 +121,15 @@ class ServiceGenerator
         $method = $class->addMethod('createInstance');
         $method->setPublic();
         $method->setReturnType($entityFullClass);
-        $method->addComment("Create a new empty {$entityClassName} instance.\n");
+        $method->addComment("Create a new {$entityClassName} instance.\n");
+        $method->addComment("@param array \$data Optional initial data for the entity");
         $method->addComment("@return {$entityClassName}");
 
-        $method->setBody('return new ' . $entityClassName . '($this->definition);');
+        $method->addParameter('data')
+            ->setType('array')
+            ->setDefaultValue([]);
+
+        $method->setBody('return new ' . $entityClassName . '($this->definition, $data);');
     }
 
     private function addFindMethod(ClassType $class, string $entityClassName, string $collectionClassName): void

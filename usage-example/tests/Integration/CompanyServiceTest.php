@@ -122,18 +122,17 @@ class CompanyServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        // Create a unique company with a real but uncommon domain
+        // Create a unique company with a real but uncommon domain using new array approach
         $uniqueId = uniqid('test_');
         $testDomain = 'https://iana.org';
 
-        $domainCollection = new LinkCollection(
-            primaryLink: new Link($testDomain, 'Test Company')
-        );
-
-        $company = $this->getCompanyService()->createInstance();
-        $company->setName("Test Company {$uniqueId}");
-        $company->setDomainName($domainCollection);
-        $company->setAddress(new Address(addressCity: 'Test City'));
+        $company = $this->getCompanyService()->createInstance([
+            'name' => "Test Company {$uniqueId}",
+            'domainName' => new LinkCollection(
+                primaryLink: new Link($testDomain, 'Test Company')
+            ),
+            'address' => new Address(addressCity: 'Test City'),
+        ]);
 
         try {
             $created = $this->getCompanyService()->create($company);
@@ -157,19 +156,19 @@ class CompanyServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        // Create a unique company with multiple real but uncommon domains
+        // Create a unique company with multiple real but uncommon domains using array approach
         $uniqueId = uniqid('test_');
-        $domainCollection = new LinkCollection(
-            primaryLink: new Link('https://ietf.org', 'IETF'),
-            secondaryLinks: [
-              new Link('https://rfc-editor.org', 'RFC Editor'),
-              new Link('https://ieee.org', 'IEEE'),
-            ]
-        );
 
-        $company = $this->getCompanyService()->createInstance();
-        $company->setName("Test Multi-Domain Company {$uniqueId}");
-        $company->setDomainName($domainCollection);
+        $company = $this->getCompanyService()->createInstance([
+            'name' => "Test Multi-Domain Company {$uniqueId}",
+            'domainName' => new LinkCollection(
+                primaryLink: new Link('https://ietf.org', 'IETF'),
+                secondaryLinks: [
+                    new Link('https://rfc-editor.org', 'RFC Editor'),
+                    new Link('https://ieee.org', 'IEEE'),
+                ]
+            ),
+        ]);
 
         try {
             $created = $this->getCompanyService()->create($company);

@@ -34,13 +34,14 @@ final class CampaignService
     }
 
     /**
-     * Create a new empty Campaign instance.
+     * Create a new Campaign instance.
      *
+     * @param array $data Optional initial data for the entity
      * @return Campaign
      */
-    public function createInstance(): Campaign
+    public function createInstance(array $data = []): Campaign
     {
-        return new Campaign($this->definition);
+        return new Campaign($this->definition, $data);
     }
 
     /**

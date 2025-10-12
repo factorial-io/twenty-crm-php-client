@@ -23,24 +23,23 @@ class PersonServiceTest extends IntegrationTestCase
         $this->requireClient();
 
         $email = $this->generateTestEmail();
-        $person = $this->getPersonService()->createInstance();
 
-        // Set basic fields
-        $person->setEmails(new EmailCollection(primaryEmail: $email));
-        $person->setName(new Name(
-            firstName: $this->generateTestName('Person'),
-            lastName: 'Test'
-        ));
-        $person->setJobTitle('Test Engineer');
-
-        // Set phone
-        $person->setPhones(new PhoneCollection(
-            primaryPhone: new Phone(
-                number: '15551234567',
-                countryCode: 'US',
-                callingCode: '+1'
-            )
-        ));
+        // Use new array-based createInstance approach
+        $person = $this->getPersonService()->createInstance([
+            'emails' => new EmailCollection(primaryEmail: $email),
+            'name' => new Name(
+                firstName: $this->generateTestName('Person'),
+                lastName: 'Test'
+            ),
+            'jobTitle' => 'Test Engineer',
+            'phones' => new PhoneCollection(
+                primaryPhone: new Phone(
+                    number: '15551234567',
+                    countryCode: 'US',
+                    callingCode: '+1'
+                )
+            ),
+        ]);
 
         $created = $this->getPersonService()->create($person);
 
@@ -211,21 +210,22 @@ class PersonServiceTest extends IntegrationTestCase
 
         $email = $this->generateTestEmail();
 
-        // Create a person with specific email and comprehensive data including phone
-        $person = $this->getPersonService()->createInstance();
-        $person->setEmails(new EmailCollection(primaryEmail: $email));
-        $person->setName(new Name(
-            firstName: $this->generateTestName('Find'),
-            lastName: 'Test'
-        ));
-        $person->setJobTitle('Data Analyst');
-        $person->setPhones(new PhoneCollection(
-            primaryPhone: new Phone(
-                number: '123456789',
-                countryCode: 'FR',
-                callingCode: '+33'
-            )
-        ));
+        // Create a person with specific email using new array-based approach
+        $person = $this->getPersonService()->createInstance([
+            'emails' => new EmailCollection(primaryEmail: $email),
+            'name' => new Name(
+                firstName: $this->generateTestName('Find'),
+                lastName: 'Test'
+            ),
+            'jobTitle' => 'Data Analyst',
+            'phones' => new PhoneCollection(
+                primaryPhone: new Phone(
+                    number: '123456789',
+                    countryCode: 'FR',
+                    callingCode: '+33'
+                )
+            ),
+        ]);
 
         $created = $this->getPersonService()->create($person);
         $this->trackResource('person', $created->getId());
@@ -360,36 +360,34 @@ class PersonServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        // Create comprehensive person with mobile phones and social links
-        $person = $this->getPersonService()->createInstance();
-        $person->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
-        $person->setName(new Name(
-            firstName: $this->generateTestName('FullPerson'),
-            lastName: 'Test'
-        ));
-        $person->setJobTitle('Senior Developer');
-
-        $person->setMobilePhones(new PhoneCollection(
-            primaryPhone: new Phone(
-                number: '9876543210',
-                countryCode: 'US',
-                callingCode: '+1'
-            )
-        ));
-
-        $person->setLinkedinLink(new LinkCollection(
-            primaryLink: new Link(
-                url: 'https://linkedin.com/in/testuser',
-                label: 'Test User'
-            )
-        ));
-
-        $person->setXLink(new LinkCollection(
-            primaryLink: new Link(
-                url: 'https://x.com/testuser',
-                label: '@testuser'
-            )
-        ));
+        // Create comprehensive person with mobile phones and social links using array approach
+        $person = $this->getPersonService()->createInstance([
+            'emails' => new EmailCollection(primaryEmail: $this->generateTestEmail()),
+            'name' => new Name(
+                firstName: $this->generateTestName('FullPerson'),
+                lastName: 'Test'
+            ),
+            'jobTitle' => 'Senior Developer',
+            'mobilePhones' => new PhoneCollection(
+                primaryPhone: new Phone(
+                    number: '9876543210',
+                    countryCode: 'US',
+                    callingCode: '+1'
+                )
+            ),
+            'linkedinLink' => new LinkCollection(
+                primaryLink: new Link(
+                    url: 'https://linkedin.com/in/testuser',
+                    label: 'Test User'
+                )
+            ),
+            'xLink' => new LinkCollection(
+                primaryLink: new Link(
+                    url: 'https://x.com/testuser',
+                    label: '@testuser'
+                )
+            ),
+        ]);
 
         $created = $this->getPersonService()->create($person);
         $this->trackResource('person', $created->getId());

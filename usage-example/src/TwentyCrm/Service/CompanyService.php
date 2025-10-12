@@ -34,13 +34,14 @@ final class CompanyService
     }
 
     /**
-     * Create a new empty Company instance.
+     * Create a new Company instance.
      *
+     * @param array $data Optional initial data for the entity
      * @return Company
      */
-    public function createInstance(): Company
+    public function createInstance(array $data = []): Company
     {
-        return new Company($this->definition);
+        return new Company($this->definition, $data);
     }
 
     /**

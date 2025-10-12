@@ -22,11 +22,12 @@ class CampaignServiceTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        // Create a campaign using generated Campaign entity
-        $campaign = $this->campaignService->createInstance();
-        $campaign->setName($this->generateTestName('Campaign'));
-        $campaign->setPurpose('Integration test campaign');
-        $campaign->setTargetGroup('Test Users');
+        // Create a campaign using new array-based createInstance approach
+        $campaign = $this->campaignService->createInstance([
+            'name' => $this->generateTestName('Campaign'),
+            'purpose' => 'Integration test campaign',
+            'targetGroup' => 'Test Users',
+        ]);
 
         $created = $this->campaignService->create($campaign);
         $this->trackResource('campaign', $created->getId());
