@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2025-10-12
+
+- feat: add optional data parameter to createInstance() method
+- docs: make AGENTS.md more welcoming and helpful for AI assistants
+- docs: add AGENTS.md with codebase guidance for AI agents
+- docs: update changelog for 0.4.0
+
 ## [0.4.0] - 2025-10-12
 
 - docs: update documentation to reflect v0.4 namespace reorganization
