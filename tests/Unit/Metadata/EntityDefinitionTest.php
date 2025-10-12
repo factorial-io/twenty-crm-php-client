@@ -291,8 +291,22 @@ class EntityDefinitionTest extends TestCase
     public function testGetRelationNames(): void
     {
         $relations = [
-            'company' => new RelationMetadata('company', 'Company', RelationType::MANY_TO_ONE, 'person', 'company', 'personCollection'),
-            'manager' => new RelationMetadata('manager', 'Manager', RelationType::MANY_TO_ONE, 'person', 'person', 'directReports'),
+            'company' => new RelationMetadata(
+                'company',
+                'Company',
+                RelationType::MANY_TO_ONE,
+                'person',
+                'company',
+                'personCollection'
+            ),
+            'manager' => new RelationMetadata(
+                'manager',
+                'Manager',
+                RelationType::MANY_TO_ONE,
+                'person',
+                'person',
+                'directReports'
+            ),
         ];
 
         $definition = new EntityDefinition(

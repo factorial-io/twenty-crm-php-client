@@ -105,10 +105,20 @@ class CodegenConfig
             );
         }
 
+        $namespace = $config['namespace'] ?? throw new \InvalidArgumentException(
+            'Missing required config: namespace'
+        );
+        $outputDir = $config['output_dir'] ?? throw new \InvalidArgumentException(
+            'Missing required config: output_dir'
+        );
+        $apiUrl = $config['api_url'] ?? throw new \InvalidArgumentException(
+            'Missing required config: api_url'
+        );
+
         return new self(
-            namespace: $config['namespace'] ?? throw new \InvalidArgumentException('Missing required config: namespace'),
-            outputDir: $config['output_dir'] ?? throw new \InvalidArgumentException('Missing required config: output_dir'),
-            apiUrl: $config['api_url'] ?? throw new \InvalidArgumentException('Missing required config: api_url'),
+            namespace: $namespace,
+            outputDir: $outputDir,
+            apiUrl: $apiUrl,
             apiToken: $apiToken,
             entities: $config['entities'] ?? [],
             options: $config['options'] ?? [],
@@ -164,11 +174,24 @@ class CodegenConfig
                 : [$options['entity']];
         }
 
+        $namespace = $options['namespace'] ?? throw new \InvalidArgumentException(
+            'Missing required option: --namespace'
+        );
+        $outputDir = $options['output'] ?? throw new \InvalidArgumentException(
+            'Missing required option: --output'
+        );
+        $apiUrl = $options['api-url'] ?? throw new \InvalidArgumentException(
+            'Missing required option: --api-url'
+        );
+        $apiToken = $options['api-token'] ?? throw new \InvalidArgumentException(
+            'Missing required option: --api-token'
+        );
+
         return new self(
-            namespace: $options['namespace'] ?? throw new \InvalidArgumentException('Missing required option: --namespace'),
-            outputDir: $options['output'] ?? throw new \InvalidArgumentException('Missing required option: --output'),
-            apiUrl: $options['api-url'] ?? throw new \InvalidArgumentException('Missing required option: --api-url'),
-            apiToken: $options['api-token'] ?? throw new \InvalidArgumentException('Missing required option: --api-token'),
+            namespace: $namespace,
+            outputDir: $outputDir,
+            apiUrl: $apiUrl,
+            apiToken: $apiToken,
             entities: $entities,
             options: [
                 'overwrite' => isset($options['overwrite']),
@@ -201,8 +224,10 @@ class CodegenConfig
             return false;
         }
 
-        // Validate namespace format
-        if (!preg_match('/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*(\\\\[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)*$/', $this->namespace)) {
+        // Validate namespace format (PSR-4 compliant)
+        $namespacePattern = '/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*' .
+            '(\\\\[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)*$/';
+        if (!preg_match($namespacePattern, $this->namespace)) {
             return false;
         }
 

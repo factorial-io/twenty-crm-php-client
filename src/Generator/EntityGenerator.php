@@ -244,8 +244,9 @@ class EntityGenerator
         $methodName = 'get' . $this->toPascalCase($fieldName);
         $phpType = $this->mapFieldTypeToPhp($field);
 
-        // Add use statement for complex types
-        if ($phpType !== 'mixed' && $phpType !== 'string' && $phpType !== 'int' && $phpType !== 'bool' && $phpType !== 'float' && $phpType !== 'array') {
+        // Add use statement for complex types (not primitive types)
+        $primitiveTypes = ['mixed', 'string', 'int', 'bool', 'float', 'array'];
+        if (!in_array($phpType, $primitiveTypes, true)) {
             $class->getNamespace()->addUse($phpType);
         }
 
@@ -272,8 +273,9 @@ class EntityGenerator
         $methodName = 'set' . $this->toPascalCase($fieldName);
         $phpType = $this->mapFieldTypeToPhp($field);
 
-        // Add use statement for complex types
-        if ($phpType !== 'mixed' && $phpType !== 'string' && $phpType !== 'int' && $phpType !== 'bool' && $phpType !== 'float' && $phpType !== 'array') {
+        // Add use statement for complex types (not primitive types)
+        $primitiveTypes = ['mixed', 'string', 'int', 'bool', 'float', 'array'];
+        if (!in_array($phpType, $primitiveTypes, true)) {
             $class->getNamespace()->addUse($phpType);
         }
 

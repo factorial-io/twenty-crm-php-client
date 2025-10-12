@@ -269,7 +269,8 @@ class FilterBuilderTest extends TestCase
             ->greaterThanOrEquals('createdAt', '2025-01-01')
             ->isNotNull('companyId');
 
-        $expected = 'name.firstName[eq]:"John",emails.primaryEmail[ilike]:"%@example.com%",status[in]:["ACTIVE","PENDING"],createdAt[gte]:"2025-01-01",companyId[neq]:NULL';
+        $expected = 'name.firstName[eq]:"John",emails.primaryEmail[ilike]:"%@example.com%",' .
+            'status[in]:["ACTIVE","PENDING"],createdAt[gte]:"2025-01-01",companyId[neq]:NULL';
         $this->assertEquals($expected, $builder->buildFilterString());
     }
 

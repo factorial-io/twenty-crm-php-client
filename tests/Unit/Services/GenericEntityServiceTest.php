@@ -34,9 +34,23 @@ class GenericEntityServiceTest extends TestCase
 
         // Create mock field metadata for testing
         $fields = [
-            'name' => new class ('field-1', 'name', FieldType::TEXT, 'Name', 'obj-1', false) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {
+            'name' => new class (
+                'field-1',
+                'name',
+                FieldType::TEXT,
+                'Name',
+                'obj-1',
+                false
+            ) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {
             },
-            'email' => new class ('field-2', 'email', FieldType::EMAILS, 'Email', 'obj-1', true) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {
+            'email' => new class (
+                'field-2',
+                'email',
+                FieldType::EMAILS,
+                'Email',
+                'obj-1',
+                true
+            ) extends \Factorial\TwentyCrm\Metadata\FieldMetadata {
             },
         ];
 
