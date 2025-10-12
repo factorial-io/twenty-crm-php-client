@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
+use Factorial\TwentyCrm\DTO\Address;
 use Factorial\TwentyCrm\DTO\EmailCollection;
 use Factorial\TwentyCrm\DTO\Link;
 use Factorial\TwentyCrm\DTO\LinkCollection;
@@ -27,8 +28,10 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $company->setDomainName(new LinkCollection(
             primaryLink: new Link('https://acme-' . time() . '.example.com', 'Acme Corp')
         ));
-        $company->setAddressCity('New York');
-        $company->setAddressCountry('USA');
+        $company->setAddress(new Address(
+            addressCity: 'New York',
+            addressCountry: 'USA'
+        ));
 
         $createdCompany = $this->getCompanyService()->create($company);
         $this->trackResource('company', $createdCompany->getId());
@@ -92,14 +95,14 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $company1->setDomainName(new LinkCollection(
             primaryLink: new Link('https://company1-' . time() . '.example.com', 'Company One')
         ));
-        $company1->setAddressCity('Boston');
+        $company1->setAddress(new Address(addressCity: 'Boston'));
 
         $company2 = $this->getCompanyService()->createInstance();
         $company2->setName($this->generateTestName('CompanyTwo'));
         $company2->setDomainName(new LinkCollection(
             primaryLink: new Link('https://company2-' . time() . '.example.com', 'Company Two')
         ));
-        $company2->setAddressCity('San Francisco');
+        $company2->setAddress(new Address(addressCity: 'San Francisco'));
 
         $createdCompany1 = $this->getCompanyService()->create($company1);
         $this->trackResource('company', $createdCompany1->getId());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
+use Factorial\TwentyCrm\DTO\Address;
 use Factorial\TwentyCrm\DTO\CustomFilter;
 use Factorial\TwentyCrm\DTO\FilterBuilder;
 use Factorial\TwentyCrm\DTO\Link;
@@ -132,7 +133,7 @@ class CompanyServiceTest extends IntegrationTestCase
         $company = $this->getCompanyService()->createInstance();
         $company->setName("Test Company {$uniqueId}");
         $company->setDomainName($domainCollection);
-        $company->setAddressCity('Test City');
+        $company->setAddress(new Address(addressCity: 'Test City'));
 
         try {
             $created = $this->getCompanyService()->create($company);
@@ -142,7 +143,8 @@ class CompanyServiceTest extends IntegrationTestCase
             $this->assertEquals("Test Company {$uniqueId}", $created->getName());
             $this->assertNotNull($created->getDomainName());
             $this->assertEquals($testDomain, $created->getDomainName()->getPrimaryLink()->getUrl());
-            $this->assertEquals('Test City', $created->getAddressCity());
+            $this->assertNotNull($created->getAddress());
+            $this->assertEquals('Test City', $created->getAddress()->getCity());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
                 $this->markTestSkipped('Domain already exists in database. Twenty CRM requires unique domains.');
@@ -159,7 +161,7 @@ class CompanyServiceTest extends IntegrationTestCase
         $uniqueId = uniqid('test_');
         $domainCollection = new LinkCollection(
             primaryLink: new Link('https://ietf.org', 'IETF'),
-            additionalLinks: [
+            secondaryLinks: [
               new Link('https://rfc-editor.org', 'RFC Editor'),
               new Link('https://ieee.org', 'IEEE'),
             ]
@@ -179,9 +181,9 @@ class CompanyServiceTest extends IntegrationTestCase
             $domains = $created->getDomainName();
             $this->assertNotNull($domains);
             $this->assertEquals('https://ietf.org', $domains->getPrimaryLink()->getUrl());
-            $this->assertCount(2, $domains->getAdditionalLinks());
+            $this->assertCount(2, $domains->getSecondaryLinks());
 
-            $additionalDomains = $domains->getAdditionalLinks();
+            $additionalDomains = $domains->getSecondaryLinks();
             $this->assertEquals('https://rfc-editor.org', $additionalDomains[0]->getUrl());
             $this->assertEquals('https://ieee.org', $additionalDomains[1]->getUrl());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
@@ -215,12 +217,13 @@ class CompanyServiceTest extends IntegrationTestCase
 
             // Update the company
             $created->setName("Updated Company {$uniqueId}");
-            $created->setAddressCity('Updated City');
+            $created->setAddress(new Address(addressCity: 'Updated City'));
 
             $updated = $this->getCompanyService()->update($created);
 
             $this->assertEquals("Updated Company {$uniqueId}", $updated->getName());
-            $this->assertEquals('Updated City', $updated->getAddressCity());
+            $this->assertNotNull($updated->getAddress());
+            $this->assertEquals('Updated City', $updated->getAddress()->getCity());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
                 $this->markTestSkipped('Domain already exists in database. Twenty CRM requires unique domains.');
@@ -251,7 +254,7 @@ class CompanyServiceTest extends IntegrationTestCase
             // Update domain with a different real domain
             $newDomainCollection = new LinkCollection(
                 primaryLink: new Link('https://kernel.org', 'Kernel'),
-                additionalLinks: [
+                secondaryLinks: [
                   new Link('https://apache.org', 'Apache'),
                 ]
             );
@@ -262,7 +265,7 @@ class CompanyServiceTest extends IntegrationTestCase
             $domains = $updated->getDomainName();
             $this->assertNotNull($domains);
             $this->assertEquals('https://kernel.org', $domains->getPrimaryLink()->getUrl());
-            $this->assertCount(1, $domains->getAdditionalLinks());
+            $this->assertCount(1, $domains->getSecondaryLinks());
         } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
             if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
                 $this->markTestSkipped(

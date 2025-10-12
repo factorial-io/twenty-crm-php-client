@@ -87,7 +87,7 @@ final class PersonCollection
      *
      * @return Person|null
      */
-    public function first(): ?\Person
+    public function first(): ?Person
     {
         return $this->entities[0] ?? null;
     }

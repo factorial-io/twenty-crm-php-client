@@ -87,7 +87,7 @@ final class CompanyCollection
      *
      * @return Company|null
      */
-    public function first(): ?\Company
+    public function first(): ?Company
     {
         return $this->entities[0] ?? null;
     }

@@ -87,7 +87,7 @@ final class CampaignCollection
      *
      * @return Campaign|null
      */
-    public function first(): ?\Campaign
+    public function first(): ?Campaign
     {
         return $this->entities[0] ?? null;
     }

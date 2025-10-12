@@ -107,7 +107,7 @@ class CollectionGenerator
         // Add first method
         $method = $class->addMethod('first');
         $method->setPublic();
-        $method->setReturnType($entityClassName);
+        $method->setReturnType($entityFullClass);
         $method->setReturnNullable(true);
         $method->addComment("Get the first entity in the collection.\n");
         $method->addComment("@return {$entityClassName}|null");
