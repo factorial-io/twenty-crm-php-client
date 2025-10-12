@@ -3,3 +3,16 @@ parameters:
     paths:
         - src
     tmpDir: var/phpstan
+
+    # Ignore generated code
+    excludePaths:
+        # Generated entity and collection classes (used for examples/testing)
+        - usage-example/src/TwentyCrm/Entity/*
+        - usage-example/src/TwentyCrm/Collection/*
+        - usage-example/src/TwentyCrm/Service/*
+
+    # Report unmatched ignored errors
+    reportUnmatchedIgnoredErrors: true
+
+    # Allow for bleeding edge features
+    treatPhpDocTypesAsCertain: false

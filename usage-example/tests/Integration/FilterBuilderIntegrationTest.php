@@ -1,0 +1,430 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Factorial\TwentyCrm\Tests\Integration;
+
+use Factorial\TwentyCrm\Collection\EmailCollection;
+use Factorial\TwentyCrm\Query\FilterBuilder;
+use Factorial\TwentyCrm\DTO\Name;
+use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Tests\IntegrationTestCase;
+
+/**
+ * Integration test for FilterBuilder with real Twenty CRM API.
+ *
+ * Tests that FilterBuilder generates correct filter strings and works
+ * properly with the Twenty CRM API for querying entities.
+ */
+class FilterBuilderIntegrationTest extends IntegrationTestCase
+{
+    private array $testPersons = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if ($this->client) {
+            // Use parent's PersonService
+            // Create test persons for filtering
+            $this->createTestPersons();
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        // Clean up test persons
+        foreach (array_reverse($this->testPersons) as $person) {
+            try {
+                $this->getPersonService()->delete($person->getId());
+            } catch (\Exception $e) {
+                // Ignore cleanup errors
+            }
+        }
+
+        parent::tearDown();
+    }
+
+    /**
+     * Create test persons with various attributes for filtering.
+     */
+    private function createTestPersons(): void
+    {
+        $testPrefix = $this->generateTestName('FilterTest');
+
+        // Person 1: John Doe, developer
+        $person1 = $this->getPersonService()->createInstance();
+        $person1->setName(new Name(firstName: 'John', lastName: 'Doe'));
+        $person1->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person1->setJobTitle('Developer');
+        $this->testPersons[] = $this->getPersonService()->create($person1);
+
+        // Person 2: Jane Smith, designer
+        $person2 = $this->getPersonService()->createInstance();
+        $person2->setName(new Name(firstName: 'Jane', lastName: 'Smith'));
+        $person2->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person2->setJobTitle('Designer');
+        $this->testPersons[] = $this->getPersonService()->create($person2);
+
+        // Person 3: Bob Johnson, developer
+        $person3 = $this->getPersonService()->createInstance();
+        $person3->setName(new Name(firstName: 'Bob', lastName: 'Johnson'));
+        $person3->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+        $person3->setJobTitle('Developer');
+        $this->testPersons[] = $this->getPersonService()->create($person3);
+    }
+
+    public function testSimpleEqualsFilter(): void
+    {
+        $this->requireClient();
+
+        // Filter by job title
+        $filter = FilterBuilder::create()
+            ->equals('jobTitle', 'Developer')
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // Should find at least our 2 developers
+        $developerCount = 0;
+        foreach ($persons->getEntities() as $person) {
+            if ($person->getJobTitle() === 'Developer') {
+                $developerCount++;
+            }
+        }
+
+        $this->assertGreaterThanOrEqual(2, $developerCount, 'Should find at least 2 developers');
+    }
+
+    public function testContainsFilter(): void
+    {
+        $this->requireClient();
+
+        // Get email domain from one of our test persons
+        $emails = $this->testPersons[0]->getEmails();
+        $testEmail = $emails->getPrimaryEmail();
+        $domain = explode('@', $testEmail)[1];
+
+        // Filter by email containing test domain
+        $filter = FilterBuilder::create()
+            ->contains('emails.primaryEmail', $domain)
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // Verify contains filter works correctly
+        // All returned persons should have the domain in their email
+        $found = 0;
+        foreach ($persons->getEntities() as $person) {
+            $emails = $person->getEmails();
+            $email = $emails?->getPrimaryEmail();
+            if ($email) {
+                $found++;
+                $this->assertStringContainsString($domain, $email,
+                    "Email '{$email}' should contain domain '{$domain}'");
+            }
+        }
+
+        $this->assertGreaterThan(0, $found, 'Should find at least some persons with test domain');
+    }
+
+    public function testMultipleConditionsWithAnd(): void
+    {
+        $this->requireClient();
+
+        // Test AND filter with jobTitle (we know test persons were created with this)
+        $filter = FilterBuilder::create()
+            ->equals('jobTitle', 'Developer')
+            ->isNotNull('name.firstName')  // AND condition
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // Verify AND filter works - all returned persons must match BOTH conditions
+        $found = 0;
+        foreach ($persons->getEntities() as $person) {
+            $jobTitle = $person->getJobTitle();
+            $name = $person->getName();
+            $firstName = $name?->getFirstName();
+
+            $found++;
+            $this->assertEquals('Developer', $jobTitle, 'All persons should have jobTitle=Developer');
+            $this->assertNotNull($firstName, 'All persons should have a firstName');
+        }
+
+        // Should find at least one person matching both criteria (our test created Developers)
+        $this->assertGreaterThan(0, $found, 'Should find at least one Developer with a firstName');
+    }
+
+    public function testStartsWithFilter(): void
+    {
+        $this->requireClient();
+
+        // Filter by first name starting with 'J'
+        $filter = FilterBuilder::create()
+            ->startsWith('name.firstName', 'J')
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // Verify that startsWith filter works correctly
+        // We test that ALL returned persons have firstName starting with 'J'
+        $allStartWithJ = true;
+        $foundCount = 0;
+
+        foreach ($persons->getEntities() as $person) {
+            $name = $person->getName();
+            $firstName = $name?->getFirstName();
+            if ($firstName) {
+                $foundCount++;
+                if (!str_starts_with($firstName, 'J')) {
+                    $allStartWithJ = false;
+                    echo "Found person with firstName NOT starting with J: {$firstName}\n";
+                }
+            }
+        }
+
+        // Should find at least some persons (the database has persons with J names)
+        $this->assertGreaterThan(0, $foundCount, 'Should find at least some persons with names starting with J');
+
+        // All returned persons should have firstName starting with J
+        $this->assertTrue($allStartWithJ, 'All returned persons should have firstName starting with J');
+    }
+
+    public function testIsNotNullFilter(): void
+    {
+        $this->requireClient();
+
+        // Filter by persons with job title (not null)
+        $filter = FilterBuilder::create()
+            ->isNotNull('jobTitle')
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // All returned persons should have a job title
+        $personsWithJobTitle = 0;
+        foreach ($persons->getEntities() as $person) {
+            if ($person->getJobTitle() !== null) {
+                $personsWithJobTitle++;
+            }
+        }
+
+        $this->assertGreaterThan(0, $personsWithJobTitle);
+        $this->assertCount($personsWithJobTitle, $persons->getEntities(), 'All returned persons should have job title');
+    }
+
+    public function testFilterWithValidation(): void
+    {
+        $this->requireClient();
+
+        // Create FilterBuilder with entity definition for validation
+        $definition = $this->client->registry()->getDefinition('person');
+        $builder = FilterBuilder::forEntity($definition);
+
+        // Valid filter - should not throw
+        $filter = $builder->equals('jobTitle', 'Developer')->build();
+        $this->assertNotNull($filter->buildFilterString());
+
+        // Test that validation is working (field exists check)
+        $this->assertTrue($definition->hasField('jobTitle'));
+    }
+
+    public function testInvalidFieldThrowsException(): void
+    {
+        $this->requireClient();
+
+        $definition = $this->client->registry()->getDefinition('person');
+        $builder = FilterBuilder::forEntity($definition);
+
+        // Invalid field should throw exception
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown field');
+
+        $builder->equals('nonExistentField', 'value');
+    }
+
+    public function testComplexNestedFieldFilter(): void
+    {
+        $this->requireClient();
+
+        // Filter by nested field: name.firstName
+        $filter = FilterBuilder::create()
+            ->equals('name.firstName', 'Jane')
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // Should find Jane
+        $foundJane = false;
+        foreach ($persons->getEntities() as $person) {
+            $name = $person->getName();
+            $firstName = $name?->getFirstName();
+            if ($firstName === 'Jane') {
+                $foundJane = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($foundJane, 'Should find Jane using nested field filter');
+    }
+
+    public function testFilterStringGeneration(): void
+    {
+        $this->requireClient();
+
+        // Test various filter string generations (Twenty CRM format)
+        $tests = [
+            [
+                'builder' => FilterBuilder::create()->equals('name', 'John'),
+                'expected' => 'name[eq]:"John"',
+            ],
+            [
+                'builder' => FilterBuilder::create()->greaterThan('age', 18),
+                'expected' => 'age[gt]:18',
+            ],
+            [
+                'builder' => FilterBuilder::create()->contains('email', '@example.com'),
+                'expected' => 'email[ilike]:"%@example.com%"',
+            ],
+            [
+                'builder' => FilterBuilder::create()->isNull('deletedAt'),
+                'expected' => 'deletedAt[is]:NULL',
+            ],
+            [
+                'builder' => FilterBuilder::create()
+                    ->equals('status', 'ACTIVE')
+                    ->greaterThan('age', 21),
+                'expected' => 'status[eq]:"ACTIVE",age[gt]:21',
+            ],
+        ];
+
+        foreach ($tests as $test) {
+            $filterString = $test['builder']->buildFilterString();
+            $this->assertEquals(
+                $test['expected'],
+                $filterString,
+                "Filter string should match expected format"
+            );
+        }
+    }
+
+    public function testEmptyFilterBuilder(): void
+    {
+        $this->requireClient();
+
+        // Empty filter should return all results
+        $filter = FilterBuilder::create()->build();
+
+        $this->assertFalse($filter->hasFilters());
+        $this->assertNull($filter->buildFilterString());
+
+        // Should still work with find()
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 10));
+        $this->assertGreaterThan(0, $persons->count(), 'Should return results with empty filter');
+    }
+
+    public function testFilterWithSearchOptions(): void
+    {
+        $this->requireClient();
+
+        // Test FilterBuilder with SearchOptions
+        $filter = FilterBuilder::create()
+            ->isNotNull('jobTitle')
+            ->build();
+
+        $options = new SearchOptions(
+            limit: 5,
+            orderBy: 'createdAt[DescNullsLast]'
+        );
+
+        $persons = $this->getPersonService()->find($filter, $options);
+
+        // Should respect limit
+        $this->assertLessThanOrEqual(5, $persons->count(), 'Should respect limit in SearchOptions');
+    }
+
+    public function testMultipleFiltersInSequence(): void
+    {
+        $this->requireClient();
+
+        // Test building multiple filters from same builder
+        $builder = FilterBuilder::create();
+
+        // First filter - test clear() works
+        $filter1 = $builder->equals('jobTitle', 'Developer')->build();
+        $this->assertEquals('jobTitle[eq]:"Developer"', $filter1->buildFilterString());
+
+        // Clear and create second filter - should be independent
+        $builder->clear();
+        $filter2 = $builder->isNotNull('jobTitle')->build();
+        $this->assertEquals('jobTitle[neq]:NULL', $filter2->buildFilterString());
+
+        // Verify both filters work independently
+        $persons1 = $this->getPersonService()->find($filter1, new SearchOptions(limit: 10));
+        $persons2 = $this->getPersonService()->find($filter2, new SearchOptions(limit: 10));
+
+        // Both should return results (verify clear() doesn't break the builder)
+        $this->assertGreaterThan(0, $persons1->count(), 'First filter should return results');
+        $this->assertGreaterThan(0, $persons2->count(), 'Second filter should return results after clear()');
+    }
+
+    public function testFilterBuilderHelperMethods(): void
+    {
+        $this->requireClient();
+
+        // Test all helper methods generate valid filters
+        $builder = FilterBuilder::create();
+
+        $filters = [
+            $builder->equals('a', 'test')->clear(),
+            $builder->notEquals('b', 'test')->clear(),
+            $builder->greaterThan('c', 10)->clear(),
+            $builder->greaterThanOrEquals('d', 10)->clear(),
+            $builder->lessThan('e', 10)->clear(),
+            $builder->lessThanOrEquals('f', 10)->clear(),
+            $builder->contains('g', 'test')->clear(),
+            $builder->startsWith('h', 'test')->clear(),
+            $builder->like('i', 'test%')->clear(),
+            $builder->ilike('j', '%test%')->clear(),
+            $builder->isNull('k')->clear(),
+            $builder->isNotNull('l')->clear(),
+        ];
+
+        // Each filter should build successfully
+        $this->assertCount(12, $filters, 'All helper methods should work');
+    }
+
+    public function testFilterWithSpecialCharacters(): void
+    {
+        $this->requireClient();
+
+        // Create person with special characters in name
+        $specialPerson = $this->getPersonService()->createInstance();
+        $specialPerson->setName(new Name(firstName: 'Test\'s', lastName: 'Person"Quote'));
+        $specialPerson->setEmails(new EmailCollection(primaryEmail: $this->generateTestEmail()));
+
+        $created = $this->getPersonService()->create($specialPerson);
+        $this->testPersons[] = $created;
+
+        // Filter should handle special characters
+        $filter = FilterBuilder::create()
+            ->contains('name.lastName', 'Quote')
+            ->build();
+
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
+
+        // Should find our person with quote in name
+        $found = false;
+        foreach ($persons->getEntities() as $person) {
+            $name = $person->getName();
+            $lastName = $name?->getLastName();
+            if ($lastName && str_contains($lastName, 'Quote')) {
+                $found = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($found, 'Should handle special characters in filter values');
+    }
+}

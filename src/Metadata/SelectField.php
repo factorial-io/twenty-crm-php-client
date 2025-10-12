@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Metadata;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 /**
  * Represents a SELECT field (single-choice enum) in Twenty CRM.
  */
@@ -12,7 +14,7 @@ class SelectField extends FieldMetadata
     /**
      * @param string $id
      * @param string $name
-     * @param string $type
+     * @param FieldType $type
      * @param string $label
      * @param string $objectMetadataId
      * @param bool $isNullable
@@ -27,7 +29,7 @@ class SelectField extends FieldMetadata
     public function __construct(
         string $id,
         string $name,
-        string $type,
+        FieldType $type,
         string $label,
         string $objectMetadataId,
         bool $isNullable,

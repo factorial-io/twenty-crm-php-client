@@ -11,6 +11,13 @@ final class SearchOptions
 {
     /**
      * Constructs a SearchOptions object.
+     *
+     * @param int $limit Maximum number of results
+     * @param string|null $orderBy Field to order by
+     * @param int|null $depth Depth for nested entities
+     * @param string|null $startingAfter Cursor for pagination (forward)
+     * @param string|null $endingBefore Cursor for pagination (backward)
+     * @param string[] $with Relations to eager load (e.g., ['company', 'opportunities'])
      */
     public function __construct(
         public readonly int $limit = 20,
@@ -18,6 +25,7 @@ final class SearchOptions
         public readonly ?int $depth = null,
         public readonly ?string $startingAfter = null,
         public readonly ?string $endingBefore = null,
+        public readonly array $with = [],
     ) {
     }
 

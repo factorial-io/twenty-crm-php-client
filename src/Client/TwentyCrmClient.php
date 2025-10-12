@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Client;
 
 use Factorial\TwentyCrm\Http\HttpClientInterface;
-use Factorial\TwentyCrm\Services\CompanyService;
-use Factorial\TwentyCrm\Services\CompanyServiceInterface;
-use Factorial\TwentyCrm\Services\ContactService;
-use Factorial\TwentyCrm\Services\ContactServiceInterface;
+use Factorial\TwentyCrm\Registry\EntityRegistry;
+use Factorial\TwentyCrm\Services\GenericEntityService;
 use Factorial\TwentyCrm\Services\MetadataService;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Main Twenty CRM client implementation.
@@ -17,66 +17,72 @@ use Factorial\TwentyCrm\Services\MetadataService;
 final class TwentyCrmClient implements ClientInterface
 {
     /**
-     * The contact service instance.
-     *
-     * @var \Factorial\TwentyCrm\Services\ContactServiceInterface|null
-     */
-    private ?ContactServiceInterface $contactService = null;
-
-    /**
-     * The company service instance.
-     *
-     * @var \Factorial\TwentyCrm\Services\CompanyServiceInterface|null
-     */
-    private ?CompanyServiceInterface $companyService = null;
-
-    /**
      * The metadata service instance.
      *
      * @var \Factorial\TwentyCrm\Services\MetadataService|null
      */
     private ?MetadataService $metadataService = null;
 
+    /**
+     * The entity registry instance.
+     *
+     * @var \Factorial\TwentyCrm\Registry\EntityRegistry|null
+     */
+    private ?EntityRegistry $registry = null;
+
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
+        $this->logger->debug('Twenty CRM client initialized');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function contacts(): ContactServiceInterface
+    public function entity(string $name): GenericEntityService
     {
-        if ($this->contactService === null) {
-            $this->contactService = new ContactService($this->httpClient);
+        $definition = $this->registry()->getDefinition($name);
+        if (!$definition) {
+            throw new \InvalidArgumentException("Unknown entity: {$name}");
         }
 
-        return $this->contactService;
+        $this->logger->debug('Creating entity service', ['entity' => $name]);
+
+        return new GenericEntityService($this->httpClient, $definition, $this->logger);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function companies(): CompanyServiceInterface
+    public function registry(): EntityRegistry
     {
-        if ($this->companyService === null) {
-            $this->companyService = new CompanyService($this->httpClient);
+        if ($this->registry === null) {
+            $this->registry = new EntityRegistry($this->httpClient, $this->metadata(), $this->logger);
         }
 
-        return $this->companyService;
+        return $this->registry;
     }
 
     /**
-     * Get the metadata service.
-     *
-     * @return \Factorial\TwentyCrm\Services\MetadataService
+     * {@inheritdoc}
      */
     public function metadata(): MetadataService
     {
         if ($this->metadataService === null) {
-            $this->metadataService = new MetadataService($this->httpClient);
+            $this->metadataService = new MetadataService($this->httpClient, $this->logger);
         }
 
         return $this->metadataService;
+    }
+
+    /**
+     * Get the HTTP client instance.
+     *
+     * @return \Factorial\TwentyCrm\Http\HttpClientInterface
+     */
+    public function getHttpClient(): HttpClientInterface
+    {
+        return $this->httpClient;
     }
 }

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Client;
 
-use Factorial\TwentyCrm\Services\CompanyServiceInterface;
-use Factorial\TwentyCrm\Services\ContactServiceInterface;
+use Factorial\TwentyCrm\Registry\EntityRegistry;
+use Factorial\TwentyCrm\Services\GenericEntityService;
+use Factorial\TwentyCrm\Services\MetadataService;
 
 /**
  * Interface for Twenty CRM client.
@@ -13,18 +14,25 @@ use Factorial\TwentyCrm\Services\ContactServiceInterface;
 interface ClientInterface
 {
     /**
-     * Get the contact service.
+     * Get a generic entity service for the specified entity.
      *
-     * @return \Factorial\TwentyCrm\Services\ContactServiceInterface
-     *   The contact service instance.
+     * @param string $name The entity name (e.g., 'person', 'company', 'campaign')
+     * @return \Factorial\TwentyCrm\Services\GenericEntityService
+     * @throws \InvalidArgumentException If the entity doesn't exist
      */
-    public function contacts(): ContactServiceInterface;
+    public function entity(string $name): GenericEntityService;
 
     /**
-     * Get the company service.
+     * Get the entity registry.
      *
-     * @return \Factorial\TwentyCrm\Services\CompanyServiceInterface
-     *   The company service instance.
+     * @return \Factorial\TwentyCrm\Registry\EntityRegistry
      */
-    public function companies(): CompanyServiceInterface;
+    public function registry(): EntityRegistry;
+
+    /**
+     * Get the metadata service.
+     *
+     * @return \Factorial\TwentyCrm\Services\MetadataService
+     */
+    public function metadata(): MetadataService;
 }

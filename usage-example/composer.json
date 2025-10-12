@@ -1,0 +1,43 @@
+{
+    "name": "factorial-io/twenty-crm-entities",
+    "description": "Generated entities for Factorial's Twenty CRM instance (example/reference implementation)",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Factorial GmbH",
+            "email": "info@factorial.io"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "factorial-io/twenty-crm-php-client": "*@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "vlucas/phpdotenv": "^5.6",
+        "guzzlehttp/guzzle": "^7.0",
+        "guzzlehttp/psr7": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Factorial\\TwentyCrm\\": "src/TwentyCrm/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Factorial\\TwentyCrm\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    }
+}

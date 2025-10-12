@@ -11,7 +11,9 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
 
 /**
- * Base test case for integration tests against real Twenty backend.
+ * Base test case for integration tests against real Twenty CRM API.
+ *
+ * These tests require TWENTY_API_TOKEN and TWENTY_API_BASE_URI environment variables.
  */
 abstract class IntegrationTestCase extends TestCase
 {
@@ -22,7 +24,7 @@ abstract class IntegrationTestCase extends TestCase
     {
         parent::setUp();
 
-        if ($_ENV['TWENTY_TEST_MODE'] !== 'integration') {
+        if (($_ENV['TWENTY_TEST_MODE'] ?? '') !== 'integration') {
             $this->markTestSkipped('Integration tests are disabled. Set TWENTY_TEST_MODE=integration to run.');
         }
 
@@ -76,7 +78,7 @@ abstract class IntegrationTestCase extends TestCase
     /**
      * Track a resource for cleanup after test.
      *
-     * @param string $type Resource type (e.g., 'contact', 'company')
+     * @param string $type Resource type (e.g., 'person', 'company')
      * @param string $id Resource ID
      */
     protected function trackResource(string $type, string $id): void
@@ -85,17 +87,15 @@ abstract class IntegrationTestCase extends TestCase
     }
 
     /**
-     * Clean up all created resources.
+     * Clean up all created resources using dynamic entity services.
      */
     protected function cleanupResources(): void
     {
         foreach (array_reverse($this->createdResources) as $resource) {
             try {
-                match ($resource['type']) {
-                    'contact' => $this->client->contacts()->delete($resource['id']),
-                    'company' => $this->client->companies()->delete($resource['id']),
-                    default => null,
-                };
+                // Use dynamic entity service for cleanup
+                $service = $this->client->entity($resource['type']);
+                $service->delete($resource['id']);
             } catch (\Exception $e) {
                 // Ignore cleanup errors - resource may already be deleted
             }

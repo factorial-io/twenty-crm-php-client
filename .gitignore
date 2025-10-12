@@ -2,6 +2,10 @@
 .env
 .env.local
 
+# Code Generation Configuration (may contain API tokens)
+.twenty-codegen.yml
+.twenty-codegen.yaml
+
 # PHPUnit
 phpunit.xml
 .phpunit.result.cache
@@ -28,3 +32,7 @@ composer.lock
 # OS
 .DS_Store
 Thumbs.db
+
+# Twenty CRM OpenAPI specs (instance-specific)
+docs/core.json
+docs/metadata.json

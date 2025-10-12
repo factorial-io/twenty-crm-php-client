@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\Tests\Unit\DTO;
 
 use Factorial\TwentyCrm\DTO\Phone;
-use Factorial\TwentyCrm\DTO\PhoneCollection;
+use Factorial\TwentyCrm\Collection\PhoneCollection;
 use Factorial\TwentyCrm\Tests\TestCase;
 
 class PhoneTest extends TestCase

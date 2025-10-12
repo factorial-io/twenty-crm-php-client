@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Autoloader paths for different installation scenarios
+$autoloadPaths = [
+    // Installed as a dependency
+    __DIR__ . '/../../../autoload.php',
+    // Installed in vendor
+    __DIR__ . '/../../autoload.php',
+    // Development installation
+    __DIR__ . '/../vendor/autoload.php',
+];
+
+$autoloaded = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    fwrite(
+        STDERR,
+        'Error: Unable to find Composer autoloader. Please run "composer install".' . PHP_EOL
+    );
+    exit(1);
+}
+
+use Factorial\TwentyCrm\Console\GenerateEntitiesCommand;
+use Symfony\Component\Console\Application;
+
+// Create application
+$application = new Application('Twenty CRM Code Generator', '1.0.0');
+
+// Add command
+$application->add(new GenerateEntitiesCommand());
+$application->setDefaultCommand('generate:entities', true);
+
+// Run
+$application->run();
