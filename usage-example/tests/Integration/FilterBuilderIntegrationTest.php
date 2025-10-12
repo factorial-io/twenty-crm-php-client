@@ -18,7 +18,6 @@ use Factorial\TwentyCrm\Tests\IntegrationTestCase;
  */
 class FilterBuilderIntegrationTest extends IntegrationTestCase
 {
-    private ?GenericEntityService $personService = null;
     private array $testPersons = [];
 
     protected function setUp(): void
@@ -26,8 +25,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         parent::setUp();
 
         if ($this->client) {
-            $this->personService = $this->client->entity('person');
-
+            // Use parent's PersonService
             // Create test persons for filtering
             $this->createTestPersons();
         }
@@ -38,7 +36,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         // Clean up test persons
         foreach (array_reverse($this->testPersons) as $person) {
             try {
-                $this->personService?->delete($person->getId());
+                $this->getPersonService()->delete($person->getId());
             } catch (\Exception $e) {
                 // Ignore cleanup errors
             }
@@ -53,7 +51,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
     private function createTestPersons(): void
     {
         $testPrefix = $this->generateTestName('FilterTest');
-        $definition = $this->personService->getDefinition();
+        $definition = $this->getPersonService()->getDefinition();
 
         // Person 1: John Doe, developer
         $person1 = new DynamicEntity($definition, [
@@ -61,7 +59,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             'emails' => ['primaryEmail' => $this->generateTestEmail()],
             'jobTitle' => 'Developer',
         ]);
-        $this->testPersons[] = $this->personService->create($person1);
+        $this->testPersons[] = $this->getPersonService()->create($person1);
 
         // Person 2: Jane Smith, designer
         $person2 = new DynamicEntity($definition, [
@@ -69,7 +67,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             'emails' => ['primaryEmail' => $this->generateTestEmail()],
             'jobTitle' => 'Designer',
         ]);
-        $this->testPersons[] = $this->personService->create($person2);
+        $this->testPersons[] = $this->getPersonService()->create($person2);
 
         // Person 3: Bob Johnson, developer
         $person3 = new DynamicEntity($definition, [
@@ -77,7 +75,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             'emails' => ['primaryEmail' => $this->generateTestEmail()],
             'jobTitle' => 'Developer',
         ]);
-        $this->testPersons[] = $this->personService->create($person3);
+        $this->testPersons[] = $this->getPersonService()->create($person3);
 
         // Wait a moment to ensure API consistency
         sleep(1);
@@ -92,7 +90,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->equals('jobTitle', 'Developer')
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // Should find at least our 2 developers
         $developerCount = 0;
@@ -119,7 +117,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->contains('emails.primaryEmail', $domain)
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // Should find our test persons
         $found = 0;
@@ -144,7 +142,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->equals('jobTitle', 'Developer')
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // Should find John Doe (developer)
         $foundJohnDeveloper = false;
@@ -170,7 +168,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->startsWith('name.firstName', 'J')
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // Should find at least John and Jane
         $jNames = [];
@@ -196,7 +194,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->isNotNull('jobTitle')
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // All returned persons should have a job title
         $personsWithJobTitle = 0;
@@ -215,7 +213,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create FilterBuilder with entity definition for validation
-        $definition = $this->personService->getDefinition();
+        $definition = $this->getPersonService()->getDefinition();
         $builder = FilterBuilder::forEntity($definition);
 
         // Valid filter - should not throw
@@ -230,7 +228,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
     {
         $this->requireClient();
 
-        $definition = $this->personService->getDefinition();
+        $definition = $this->getPersonService()->getDefinition();
         $builder = FilterBuilder::forEntity($definition);
 
         // Invalid field should throw exception
@@ -249,7 +247,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->equals('name.firstName', 'Jane')
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // Should find Jane
         $foundJane = false;
@@ -316,7 +314,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         $this->assertNull($filter->buildFilterString());
 
         // Should still work with find()
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 10));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 10));
         $this->assertGreaterThan(0, count($persons), 'Should return results with empty filter');
     }
 
@@ -334,7 +332,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             orderBy: 'createdAt[DescNullsLast]'
         );
 
-        $persons = $this->personService->find($filter, $options);
+        $persons = $this->getPersonService()->find($filter, $options);
 
         // Should respect limit
         $this->assertLessThanOrEqual(5, count($persons), 'Should respect limit in SearchOptions');
@@ -349,12 +347,12 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
 
         // First filter
         $filter1 = $builder->equals('jobTitle', 'Developer')->build();
-        $persons1 = $this->personService->find($filter1, new SearchOptions(limit: 100));
+        $persons1 = $this->getPersonService()->find($filter1, new SearchOptions(limit: 100));
 
         // Clear and create second filter
         $builder->clear();
         $filter2 = $builder->equals('jobTitle', 'Designer')->build();
-        $persons2 = $this->personService->find($filter2, new SearchOptions(limit: 100));
+        $persons2 = $this->getPersonService()->find($filter2, new SearchOptions(limit: 100));
 
         // Results should be different
         $devCount = 0;
@@ -406,13 +404,13 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create person with special characters in name
-        $definition = $this->personService->getDefinition();
+        $definition = $this->getPersonService()->getDefinition();
         $specialPerson = new DynamicEntity($definition, [
             'name' => ['firstName' => 'Test\'s', 'lastName' => 'Person"Quote'],
             'emails' => ['primaryEmail' => $this->generateTestEmail()],
         ]);
 
-        $created = $this->personService->create($specialPerson);
+        $created = $this->getPersonService()->create($specialPerson);
         $this->testPersons[] = $created;
 
         sleep(1); // Wait for API consistency
@@ -422,7 +420,7 @@ class FilterBuilderIntegrationTest extends IntegrationTestCase
             ->contains('name.lastName', 'Quote')
             ->build();
 
-        $persons = $this->personService->find($filter, new SearchOptions(limit: 100));
+        $persons = $this->getPersonService()->find($filter, new SearchOptions(limit: 100));
 
         // Should find our person with quote in name
         $found = false;

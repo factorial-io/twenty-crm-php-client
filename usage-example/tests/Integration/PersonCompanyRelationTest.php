@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\Address;
+use Factorial\TwentyCrm\DTO\DomainName;
+use Factorial\TwentyCrm\DTO\DomainNameCollection;
 use Factorial\TwentyCrm\DTO\EmailCollection;
-use Factorial\TwentyCrm\DTO\Link;
-use Factorial\TwentyCrm\DTO\LinkCollection;
 use Factorial\TwentyCrm\DTO\Name;
-use Factorial\TwentyCrm\Entity\Company;
-use Factorial\TwentyCrm\Entity\Person;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
 /**
@@ -25,17 +22,15 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Step 1: Create a company first
-        $company = $this->companyService->createInstance();
+        $company = $this->getCompanyService()->createInstance();
         $company->setName($this->generateTestName('AcmeCorp'));
-        $company->setDomainName(new LinkCollection(
-            primaryLink: new Link('https://acme-' . time() . '.example.com', 'Acme Corp')
+        $company->setDomainName(new DomainNameCollection(
+            new DomainName('https://acme-' . time() . '.example.com')
         ));
-        $company->setAddress(new Address(
-            addressCity: 'New York',
-            addressCountry: 'USA'
-        ));
+        $company->setAddressCity('New York');
+        $company->setAddressCountry('USA');
 
-        $createdCompany = $this->companyService->create($company);
+        $createdCompany = $this->getCompanyService()->create($company);
         $this->trackResource('company', $createdCompany->getId());
 
         $this->assertNotNull($createdCompany->getId());
@@ -44,7 +39,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->assertEquals('New York', $createdCompany->getAddress()->getCity());
 
         // Step 2: Create a person associated with the company
-        $person = $this->personService->createInstance();
+        $person = $this->getPersonService()->createInstance();
         $person->setName(new Name(
             firstName: $this->generateTestName('John'),
             lastName: 'Doe'
@@ -55,7 +50,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $person->setJobTitle('Software Engineer');
         $person->setCompany($createdCompany->getId());
 
-        $createdPerson = $this->personService->create($person);
+        $createdPerson = $this->getPersonService()->create($person);
         $this->trackResource('person', $createdPerson->getId());
 
         $this->assertNotNull($createdPerson->getId());
@@ -65,7 +60,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->assertEquals($createdCompany->getId(), $createdPerson->getCompany());
 
         // Step 3: Retrieve the person and verify the company relation exists
-        $retrievedPerson = $this->personService->getById($createdPerson->getId());
+        $retrievedPerson = $this->getPersonService()->getById($createdPerson->getId());
 
         $this->assertNotNull($retrievedPerson);
         $this->assertEquals($createdPerson->getId(), $retrievedPerson->getId());
@@ -73,7 +68,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->assertEquals('Software Engineer', $retrievedPerson->getJobTitle());
 
         // Step 4: Retrieve the company and verify it was created correctly
-        $retrievedCompany = $this->companyService->getById($createdCompany->getId());
+        $retrievedCompany = $this->getCompanyService()->getById($createdCompany->getId());
 
         $this->assertNotNull($retrievedCompany);
         $this->assertEquals($createdCompany->getId(), $retrievedCompany->getId());
@@ -92,28 +87,28 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create two companies
-        $company1 = $this->companyService->createInstance();
+        $company1 = $this->getCompanyService()->createInstance();
         $company1->setName($this->generateTestName('CompanyOne'));
-        $company1->setDomainName(new LinkCollection(
-            primaryLink: new Link('https://company1-' . time() . '.example.com', 'Company One')
+        $company1->setDomainName(new DomainNameCollection(
+            new DomainName('https://company1-' . time() . '.example.com')
         ));
-        $company1->setAddress(new Address(addressCity: 'Boston'));
+        $company1->setAddressCity('Boston');
 
-        $company2 = $this->companyService->createInstance();
+        $company2 = $this->getCompanyService()->createInstance();
         $company2->setName($this->generateTestName('CompanyTwo'));
-        $company2->setDomainName(new LinkCollection(
-            primaryLink: new Link('https://company2-' . time() . '.example.com', 'Company Two')
+        $company2->setDomainName(new DomainNameCollection(
+            new DomainName('https://company2-' . time() . '.example.com')
         ));
-        $company2->setAddress(new Address(addressCity: 'San Francisco'));
+        $company2->setAddressCity('San Francisco');
 
-        $createdCompany1 = $this->companyService->create($company1);
+        $createdCompany1 = $this->getCompanyService()->create($company1);
         $this->trackResource('company', $createdCompany1->getId());
 
-        $createdCompany2 = $this->companyService->create($company2);
+        $createdCompany2 = $this->getCompanyService()->create($company2);
         $this->trackResource('company', $createdCompany2->getId());
 
         // Create a person associated with company 1
-        $person = $this->personService->createInstance();
+        $person = $this->getPersonService()->createInstance();
         $person->setName(new Name(
             firstName: $this->generateTestName('Jane'),
             lastName: 'Smith'
@@ -124,7 +119,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $person->setJobTitle('Product Manager');
         $person->setCompany($createdCompany1->getId());
 
-        $createdPerson = $this->personService->create($person);
+        $createdPerson = $this->getPersonService()->create($person);
         $this->trackResource('person', $createdPerson->getId());
 
         // Verify initial company relationship
@@ -132,13 +127,13 @@ class PersonCompanyRelationTest extends IntegrationTestCase
 
         // Update the person to associate with company 2
         $createdPerson->setCompany($createdCompany2->getId());
-        $updatedPerson = $this->personService->update($createdPerson);
+        $updatedPerson = $this->getPersonService()->update($createdPerson);
 
         // Verify the company relationship was updated
         $this->assertEquals($createdCompany2->getId(), $updatedPerson->getCompany());
 
         // Retrieve and verify
-        $retrievedPerson = $this->personService->getById($updatedPerson->getId());
+        $retrievedPerson = $this->getPersonService()->getById($updatedPerson->getId());
         $this->assertEquals($createdCompany2->getId(), $retrievedPerson->getCompany());
     }
 
@@ -147,7 +142,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create a person without a company association
-        $person = $this->personService->createInstance();
+        $person = $this->getPersonService()->createInstance();
         $person->setName(new Name(
             firstName: $this->generateTestName('Alice'),
             lastName: 'Johnson'
@@ -157,7 +152,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         ));
         $person->setJobTitle('Freelance Consultant');
 
-        $createdPerson = $this->personService->create($person);
+        $createdPerson = $this->getPersonService()->create($person);
         $this->trackResource('person', $createdPerson->getId());
 
         $this->assertNotNull($createdPerson->getId());
@@ -165,7 +160,7 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->assertEquals('Freelance Consultant', $createdPerson->getJobTitle());
 
         // Retrieve and verify
-        $retrievedPerson = $this->personService->getById($createdPerson->getId());
+        $retrievedPerson = $this->getPersonService()->getById($createdPerson->getId());
         $this->assertNotNull($retrievedPerson);
         $this->assertNull($retrievedPerson->getCompany());
     }
