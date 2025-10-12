@@ -7,6 +7,11 @@ namespace Factorial\TwentyCrm\Tests;
 use Factorial\TwentyCrm\Auth\BearerTokenAuth;
 use Factorial\TwentyCrm\Client\TwentyCrmClient;
 use Factorial\TwentyCrm\Http\GuzzleHttpClient;
+use Factorial\TwentyCrm\Metadata\EntityDefinition;
+use Factorial\TwentyCrm\Registry\EntityRegistry;
+use Factorial\TwentyCrm\Service\CompanyService;
+use Factorial\TwentyCrm\Service\PersonService;
+use Factorial\TwentyCrm\Services\MetadataService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
 
@@ -17,6 +22,8 @@ abstract class IntegrationTestCase extends TestCase
 {
     protected ?TwentyCrmClient $client = null;
     protected array $createdResources = [];
+    protected ?PersonService $personService = null;
+    protected ?CompanyService $companyService = null;
 
     protected function setUp(): void
     {
@@ -28,6 +35,34 @@ abstract class IntegrationTestCase extends TestCase
 
         $this->validateEnvironment();
         $this->client = $this->createClient();
+        $this->initializeServices();
+    }
+
+    /**
+     * Initialize entity services.
+     */
+    private function initializeServices(): void
+    {
+        $guzzle = new Client(['timeout' => 30]);
+        $httpFactory = new HttpFactory();
+        $auth = new BearerTokenAuth($_ENV['TWENTY_API_TOKEN']);
+
+        $httpClient = new GuzzleHttpClient(
+            $guzzle,
+            $httpFactory,
+            $httpFactory,
+            $auth,
+            $_ENV['TWENTY_API_BASE_URI']
+        );
+
+        $metadataService = new MetadataService($httpClient);
+        $registry = new EntityRegistry($httpClient, $metadataService);
+
+        $personDef = $registry->getDefinition('person');
+        $companyDef = $registry->getDefinition('company');
+
+        $this->personService = new PersonService($httpClient, $personDef);
+        $this->companyService = new CompanyService($httpClient, $companyDef);
     }
 
     protected function tearDown(): void
@@ -92,8 +127,9 @@ abstract class IntegrationTestCase extends TestCase
         foreach (array_reverse($this->createdResources) as $resource) {
             try {
                 match ($resource['type']) {
+                    'person' => $this->personService?->delete($resource['id']),
+                    'company' => $this->companyService?->delete($resource['id']),
                     'contact' => $this->client->contacts()->delete($resource['id']),
-                    'company' => $this->client->companies()->delete($resource['id']),
                     default => null,
                 };
             } catch (\Exception $e) {

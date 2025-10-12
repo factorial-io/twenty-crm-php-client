@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\Tests\Integration;
 
-use Factorial\TwentyCrm\DTO\Company;
-use Factorial\TwentyCrm\DTO\Contact;
-use Factorial\TwentyCrm\DTO\DomainName;
-use Factorial\TwentyCrm\DTO\DomainNameCollection;
+use Factorial\TwentyCrm\DTO\Address;
+use Factorial\TwentyCrm\DTO\EmailCollection;
+use Factorial\TwentyCrm\DTO\Link;
+use Factorial\TwentyCrm\DTO\LinkCollection;
+use Factorial\TwentyCrm\DTO\Name;
+use Factorial\TwentyCrm\Entity\Company;
+use Factorial\TwentyCrm\Entity\Person;
 use Factorial\TwentyCrm\Tests\IntegrationTestCase;
 
 /**
- * Integration test for person (contact) to company relations.
+ * Integration test for person to company relations.
+ *
+ * Tests the relationship between generated Person and Company entities.
  */
 class PersonCompanyRelationTest extends IntegrationTestCase
 {
@@ -20,73 +25,66 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Step 1: Create a company first
-        $uniqueId = uniqid('test_');
-        $testDomain = 'https://fsf.org'; // Free Software Foundation
-
-        $domainCollection = new DomainNameCollection(
-            new DomainName($testDomain)
-        );
-
-        $company = new Company(
-            name: "Acme Corporation {$uniqueId}",
-            domainName: $domainCollection,
+        $company = $this->companyService->createInstance();
+        $company->setName($this->generateTestName('AcmeCorp'));
+        $company->setDomainName(new LinkCollection(
+            primaryLink: new Link('https://acme-' . time() . '.example.com', 'Acme Corp')
+        ));
+        $company->setAddress(new Address(
             addressCity: 'New York',
             addressCountry: 'USA'
-        );
+        ));
 
-        try {
-            $createdCompany = $this->client->companies()->create($company);
-            // $this->trackResource('company', $createdCompany->getId()); // Disabled for manual inspection
+        $createdCompany = $this->companyService->create($company);
+        $this->trackResource('company', $createdCompany->getId());
 
-            $this->assertNotNull($createdCompany->getId());
-            $this->assertEquals("Acme Corporation {$uniqueId}", $createdCompany->getName());
-            $this->assertEquals('New York', $createdCompany->getAddressCity());
+        $this->assertNotNull($createdCompany->getId());
+        $this->assertEquals($company->getName(), $createdCompany->getName());
+        $this->assertNotNull($createdCompany->getAddress());
+        $this->assertEquals('New York', $createdCompany->getAddress()->getCity());
 
-            // Step 2: Create a person (contact) associated with the company
-            $contact = new Contact(
-                email: $this->generateTestEmail(),
-                firstName: $this->generateTestName('John'),
-                lastName: 'Doe',
-                jobTitle: 'Software Engineer',
-                companyId: $createdCompany->getId()
-            );
+        // Step 2: Create a person associated with the company
+        $person = $this->personService->createInstance();
+        $person->setName(new Name(
+            firstName: $this->generateTestName('John'),
+            lastName: 'Doe'
+        ));
+        $person->setEmails(new EmailCollection(
+            primaryEmail: $this->generateTestEmail()
+        ));
+        $person->setJobTitle('Software Engineer');
+        $person->setCompany($createdCompany->getId());
 
-            $createdContact = $this->client->contacts()->create($contact);
-            // $this->trackResource('contact', $createdContact->getId()); // Disabled for manual inspection
+        $createdPerson = $this->personService->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
-            $this->assertNotNull($createdContact->getId());
-            $this->assertEquals($contact->getEmail(), $createdContact->getEmail());
-            $this->assertEquals($contact->getFirstName(), $createdContact->getFirstName());
-            $this->assertEquals($contact->getLastName(), $createdContact->getLastName());
-            $this->assertEquals($contact->getJobTitle(), $createdContact->getJobTitle());
-            $this->assertEquals($createdCompany->getId(), $createdContact->getCompanyId());
+        $this->assertNotNull($createdPerson->getId());
+        $this->assertEquals($person->getName()->getFirstName(), $createdPerson->getName()->getFirstName());
+        $this->assertEquals($person->getName()->getLastName(), $createdPerson->getName()->getLastName());
+        $this->assertEquals($person->getJobTitle(), $createdPerson->getJobTitle());
+        $this->assertEquals($createdCompany->getId(), $createdPerson->getCompany());
 
-            // Step 3: Retrieve the person and verify the company relation exists
-            $retrievedContact = $this->client->contacts()->getById($createdContact->getId());
+        // Step 3: Retrieve the person and verify the company relation exists
+        $retrievedPerson = $this->personService->getById($createdPerson->getId());
 
-            $this->assertNotNull($retrievedContact);
-            $this->assertEquals($createdContact->getId(), $retrievedContact->getId());
-            $this->assertEquals($createdCompany->getId(), $retrievedContact->getCompanyId());
-            $this->assertEquals('Software Engineer', $retrievedContact->getJobTitle());
+        $this->assertNotNull($retrievedPerson);
+        $this->assertEquals($createdPerson->getId(), $retrievedPerson->getId());
+        $this->assertEquals($createdCompany->getId(), $retrievedPerson->getCompany());
+        $this->assertEquals('Software Engineer', $retrievedPerson->getJobTitle());
 
-            // Step 4: Retrieve the company and verify it was created correctly
-            $retrievedCompany = $this->client->companies()->getById($createdCompany->getId());
+        // Step 4: Retrieve the company and verify it was created correctly
+        $retrievedCompany = $this->companyService->getById($createdCompany->getId());
 
-            $this->assertNotNull($retrievedCompany);
-            $this->assertEquals($createdCompany->getId(), $retrievedCompany->getId());
-            $this->assertEquals("Acme Corporation {$uniqueId}", $retrievedCompany->getName());
-            $this->assertEquals('New York', $retrievedCompany->getAddressCity());
-            $this->assertEquals('USA', $retrievedCompany->getAddressCountry());
+        $this->assertNotNull($retrievedCompany);
+        $this->assertEquals($createdCompany->getId(), $retrievedCompany->getId());
+        $this->assertEquals($company->getName(), $retrievedCompany->getName());
+        $this->assertNotNull($retrievedCompany->getAddress());
+        $this->assertEquals('New York', $retrievedCompany->getAddress()->getCity());
+        $this->assertEquals('USA', $retrievedCompany->getAddress()->getAddressCountry());
 
-            // Verify domain
-            $this->assertNotNull($retrievedCompany->getDomainName());
-            $this->assertEquals($testDomain, $retrievedCompany->getDomainName()->getPrimaryUrl());
-        } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
-            if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
-                $this->markTestSkipped('Domain already exists in database. Twenty CRM requires unique domains.');
-            }
-            throw $e;
-        }
+        // Verify domain
+        $this->assertNotNull($retrievedCompany->getDomainName());
+        $this->assertNotNull($retrievedCompany->getDomainName()->getPrimaryLink());
     }
 
     public function testUpdatePersonCompanyRelation(): void
@@ -94,87 +92,81 @@ class PersonCompanyRelationTest extends IntegrationTestCase
         $this->requireClient();
 
         // Create two companies
-        $uniqueId1 = uniqid('test_');
-        $uniqueId2 = uniqid('test_');
+        $company1 = $this->companyService->createInstance();
+        $company1->setName($this->generateTestName('CompanyOne'));
+        $company1->setDomainName(new LinkCollection(
+            primaryLink: new Link('https://company1-' . time() . '.example.com', 'Company One')
+        ));
+        $company1->setAddress(new Address(addressCity: 'Boston'));
 
-        $company1 = new Company(
-            name: "Company One {$uniqueId1}",
-            domainName: new DomainNameCollection(
-                new DomainName('https://eff.org') // Electronic Frontier Foundation
-            ),
-            addressCity: 'Boston'
-        );
+        $company2 = $this->companyService->createInstance();
+        $company2->setName($this->generateTestName('CompanyTwo'));
+        $company2->setDomainName(new LinkCollection(
+            primaryLink: new Link('https://company2-' . time() . '.example.com', 'Company Two')
+        ));
+        $company2->setAddress(new Address(addressCity: 'San Francisco'));
 
-        $company2 = new Company(
-            name: "Company Two {$uniqueId2}",
-            domainName: new DomainNameCollection(
-                new DomainName('https://python.org') // Python Software Foundation
-            ),
-            addressCity: 'San Francisco'
-        );
+        $createdCompany1 = $this->companyService->create($company1);
+        $this->trackResource('company', $createdCompany1->getId());
 
-        try {
-            $createdCompany1 = $this->client->companies()->create($company1);
-            // $this->trackResource('company', $createdCompany1->getId()); // Disabled for manual inspection
+        $createdCompany2 = $this->companyService->create($company2);
+        $this->trackResource('company', $createdCompany2->getId());
 
-            $createdCompany2 = $this->client->companies()->create($company2);
-            // $this->trackResource('company', $createdCompany2->getId()); // Disabled for manual inspection
+        // Create a person associated with company 1
+        $person = $this->personService->createInstance();
+        $person->setName(new Name(
+            firstName: $this->generateTestName('Jane'),
+            lastName: 'Smith'
+        ));
+        $person->setEmails(new EmailCollection(
+            primaryEmail: $this->generateTestEmail()
+        ));
+        $person->setJobTitle('Product Manager');
+        $person->setCompany($createdCompany1->getId());
 
-            // Create a contact associated with company 1
-            $contact = new Contact(
-                email: $this->generateTestEmail(),
-                firstName: $this->generateTestName('Jane'),
-                lastName: 'Smith',
-                jobTitle: 'Product Manager',
-                companyId: $createdCompany1->getId()
-            );
+        $createdPerson = $this->personService->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
-            $createdContact = $this->client->contacts()->create($contact);
-            // $this->trackResource('contact', $createdContact->getId()); // Disabled for manual inspection
+        // Verify initial company relationship
+        $this->assertEquals($createdCompany1->getId(), $createdPerson->getCompany());
 
-            // Verify initial company relationship
-            $this->assertEquals($createdCompany1->getId(), $createdContact->getCompanyId());
+        // Update the person to associate with company 2
+        $createdPerson->setCompany($createdCompany2->getId());
+        $updatedPerson = $this->personService->update($createdPerson);
 
-            // Update the contact to associate with company 2
-            $createdContact->setCompanyId($createdCompany2->getId());
-            $updatedContact = $this->client->contacts()->update($createdContact);
+        // Verify the company relationship was updated
+        $this->assertEquals($createdCompany2->getId(), $updatedPerson->getCompany());
 
-            // Verify the company relationship was updated
-            $this->assertEquals($createdCompany2->getId(), $updatedContact->getCompanyId());
-
-            // Retrieve and verify
-            $retrievedContact = $this->client->contacts()->getById($updatedContact->getId());
-            $this->assertEquals($createdCompany2->getId(), $retrievedContact->getCompanyId());
-        } catch (\Factorial\TwentyCrm\Exception\ApiException $e) {
-            if (str_contains($e->getResponseBody() ?? '', 'Duplicate Domain Name')) {
-                $this->markTestSkipped('Domain already exists in database. Twenty CRM requires unique domains.');
-            }
-            throw $e;
-        }
+        // Retrieve and verify
+        $retrievedPerson = $this->personService->getById($updatedPerson->getId());
+        $this->assertEquals($createdCompany2->getId(), $retrievedPerson->getCompany());
     }
 
     public function testCreatePersonWithoutCompany(): void
     {
         $this->requireClient();
 
-        // Create a contact without a company association
-        $contact = new Contact(
-            email: $this->generateTestEmail(),
+        // Create a person without a company association
+        $person = $this->personService->createInstance();
+        $person->setName(new Name(
             firstName: $this->generateTestName('Alice'),
-            lastName: 'Johnson',
-            jobTitle: 'Freelance Consultant'
-        );
+            lastName: 'Johnson'
+        ));
+        $person->setEmails(new EmailCollection(
+            primaryEmail: $this->generateTestEmail()
+        ));
+        $person->setJobTitle('Freelance Consultant');
 
-        $createdContact = $this->client->contacts()->create($contact);
-        $this->trackResource('contact', $createdContact->getId());
+        $createdPerson = $this->personService->create($person);
+        $this->trackResource('person', $createdPerson->getId());
 
-        $this->assertNotNull($createdContact->getId());
-        $this->assertNull($createdContact->getCompanyId());
-        $this->assertEquals('Freelance Consultant', $createdContact->getJobTitle());
+        $this->assertNotNull($createdPerson->getId());
+        $this->assertNull($createdPerson->getCompany());
+        $this->assertEquals('Freelance Consultant', $createdPerson->getJobTitle());
 
         // Retrieve and verify
-        $retrievedContact = $this->client->contacts()->getById($createdContact->getId());
-        $this->assertNotNull($retrievedContact);
-        $this->assertNull($retrievedContact->getCompanyId());
+        $retrievedPerson = $this->personService->getById($createdPerson->getId());
+        $this->assertNotNull($retrievedPerson);
+        $this->assertNull($retrievedPerson->getCompany());
     }
 }
