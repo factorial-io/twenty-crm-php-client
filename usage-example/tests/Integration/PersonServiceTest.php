@@ -136,7 +136,10 @@ class PersonServiceTest extends IntegrationTestCase
 
         // Update multiple fields including phone
         $created->setJobTitle('Senior Engineer');
-        $created->getName()->setLastName('Updated');
+        $created->setName(new Name(
+            firstName: $created->getName()->getFirstName(),
+            lastName: 'Updated'
+        ));
 
         $created->setPhones(new PhoneCollection(
             primaryPhone: new Phone(
