@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 /**
  * Interface for handling complex nested field transformations.
  *
@@ -66,7 +68,7 @@ interface NestedObjectHandler
      *
      * Used to register handlers for specific field types.
      *
-     * @return string Twenty field type (e.g., 'PHONES', 'LINKS', 'EMAILS')
+     * @return FieldType Twenty field type
      */
-    public function getFieldType(): string;
+    public function getFieldType(): FieldType;
 }

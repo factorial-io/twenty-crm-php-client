@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Factorial\TwentyCrm\FieldHandlers;
 
 use Factorial\TwentyCrm\DTO\PhoneCollection;
+use Factorial\TwentyCrm\Enums\FieldType;
 
 /**
  * Handler for PHONES field type.
@@ -57,8 +58,8 @@ class PhonesFieldHandler implements NestedObjectHandler
         return '?' . PhoneCollection::class;
     }
 
-    public function getFieldType(): string
+    public function getFieldType(): FieldType
     {
-        return 'PHONES';
+        return FieldType::PHONES;
     }
 }

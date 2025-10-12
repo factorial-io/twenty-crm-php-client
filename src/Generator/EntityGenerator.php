@@ -300,27 +300,15 @@ class EntityGenerator
      */
     private function mapFieldTypeToPhp(FieldMetadata $field): string
     {
-        // Convert FieldType enum to string value
-        $typeValue = $field->type->value;
-
         // Check if we have a handler for this field type
-        if ($this->handlers->hasHandler($typeValue)) {
-            $phpType = $this->handlers->getPhpType($typeValue);
+        if ($this->handlers->hasHandler($field->type)) {
+            $phpType = $this->handlers->getPhpType($field->type);
             // Remove leading ? if present, we'll handle nullability separately
             return ltrim($phpType, '?');
         }
 
-        // Fall back to basic type mapping
-        return match ($typeValue) {
-            'TEXT', 'EMAIL', 'PHONE', 'UUID' => 'string',
-            'NUMBER', 'RATING' => 'int',
-            'BOOLEAN' => 'bool',
-            'DATE_TIME' => 'string', // Could be \DateTimeInterface but API returns string
-            'SELECT' => 'string', // Enum values are strings
-            'CURRENCY' => 'float',
-            'RELATION' => 'mixed', // Relations are complex, use mixed for now
-            default => 'mixed',
-        };
+        // Fall back to FieldType's PHP type mapping
+        return $field->type->getPhpType();
     }
 
     /**

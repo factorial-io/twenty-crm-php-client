@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 use Factorial\TwentyCrm\DTO\Currency;
 
 /**
@@ -66,8 +68,8 @@ class CurrencyFieldHandler implements NestedObjectHandler
         return '?' . Currency::class;
     }
 
-    public function getFieldType(): string
+    public function getFieldType(): FieldType
     {
-        return 'CURRENCY';
+        return FieldType::CURRENCY;
     }
 }

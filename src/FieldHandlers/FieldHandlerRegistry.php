@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 /**
  * Registry for managing field handlers.
  *
@@ -13,7 +15,7 @@ namespace Factorial\TwentyCrm\FieldHandlers;
 class FieldHandlerRegistry
 {
     /**
-     * Registered handlers indexed by field type.
+     * Registered handlers indexed by field type value.
      *
      * @var array<string, NestedObjectHandler>
      */
@@ -36,29 +38,29 @@ class FieldHandlerRegistry
      */
     public function register(NestedObjectHandler $handler): void
     {
-        $this->handlers[$handler->getFieldType()] = $handler;
+        $this->handlers[$handler->getFieldType()->value] = $handler;
     }
 
     /**
      * Get a handler for a specific field type.
      *
-     * @param string $fieldType The Twenty CRM field type (e.g., 'PHONES', 'LINKS')
+     * @param FieldType $fieldType The Twenty CRM field type
      * @return NestedObjectHandler|null The handler or null if not found
      */
-    public function getHandler(string $fieldType): ?NestedObjectHandler
+    public function getHandler(FieldType $fieldType): ?NestedObjectHandler
     {
-        return $this->handlers[$fieldType] ?? null;
+        return $this->handlers[$fieldType->value] ?? null;
     }
 
     /**
      * Check if a handler exists for a field type.
      *
-     * @param string $fieldType The field type
+     * @param FieldType $fieldType The field type
      * @return bool True if handler exists
      */
-    public function hasHandler(string $fieldType): bool
+    public function hasHandler(FieldType $fieldType): bool
     {
-        return isset($this->handlers[$fieldType]);
+        return isset($this->handlers[$fieldType->value]);
     }
 
     /**
@@ -76,10 +78,10 @@ class FieldHandlerRegistry
      *
      * Returns the handler's PHP type if available, otherwise 'mixed'.
      *
-     * @param string $fieldType The Twenty CRM field type
+     * @param FieldType $fieldType The Twenty CRM field type
      * @return string The PHP type (e.g., 'PhoneCollection', 'string', 'mixed')
      */
-    public function getPhpType(string $fieldType): string
+    public function getPhpType(FieldType $fieldType): string
     {
         $handler = $this->getHandler($fieldType);
         return $handler ? $handler->getPhpType() : 'mixed';
@@ -88,11 +90,11 @@ class FieldHandlerRegistry
     /**
      * Transform API data to PHP object.
      *
-     * @param string $fieldType The field type
+     * @param FieldType $fieldType The field type
      * @param array $data The API data
      * @return mixed The transformed PHP object or original data
      */
-    public function fromApi(string $fieldType, array $data): mixed
+    public function fromApi(FieldType $fieldType, array $data): mixed
     {
         $handler = $this->getHandler($fieldType);
         return $handler ? $handler->fromApi($data) : $data;
@@ -101,11 +103,11 @@ class FieldHandlerRegistry
     /**
      * Transform PHP object to API format.
      *
-     * @param string $fieldType The field type
+     * @param FieldType $fieldType The field type
      * @param mixed $value The PHP object
      * @return array The API format data
      */
-    public function toApi(string $fieldType, mixed $value): array
+    public function toApi(FieldType $fieldType, mixed $value): array
     {
         $handler = $this->getHandler($fieldType);
 

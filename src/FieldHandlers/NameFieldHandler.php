@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 use Factorial\TwentyCrm\DTO\Name;
 
 /**
@@ -53,8 +55,8 @@ class NameFieldHandler implements NestedObjectHandler
         return '?' . Name::class;
     }
 
-    public function getFieldType(): string
+    public function getFieldType(): FieldType
     {
-        return 'FULL_NAME';
+        return FieldType::FULL_NAME;
     }
 }

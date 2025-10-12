@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 use Factorial\TwentyCrm\DTO\Address;
 
 /**
@@ -59,8 +61,8 @@ class AddressFieldHandler implements NestedObjectHandler
         return '?' . Address::class;
     }
 
-    public function getFieldType(): string
+    public function getFieldType(): FieldType
     {
-        return 'ADDRESS';
+        return FieldType::ADDRESS;
     }
 }

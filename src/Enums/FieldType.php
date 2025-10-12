@@ -74,4 +74,25 @@ enum FieldType: string
             default => false,
         };
     }
+
+    /**
+     * Get the PHP type for this field type.
+     *
+     * Returns the native PHP type for fields that don't have a handler.
+     */
+    public function getPhpType(): string
+    {
+        return match ($this) {
+            self::TEXT,
+            self::UUID => 'string',
+            self::NUMBER,
+            self::RATING => 'int',
+            self::BOOLEAN => 'bool',
+            self::DATE_TIME,
+            self::DATE => 'string',
+            self::SELECT => 'string',
+            self::RELATION => 'string', // Relation IDs are strings
+            default => 'mixed',
+        };
+    }
 }

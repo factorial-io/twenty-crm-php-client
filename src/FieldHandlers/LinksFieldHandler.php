@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Factorial\TwentyCrm\FieldHandlers;
 
+use Factorial\TwentyCrm\Enums\FieldType;
+
 use Factorial\TwentyCrm\DTO\LinkCollection;
 
 /**
@@ -56,8 +58,8 @@ class LinksFieldHandler implements NestedObjectHandler
         return '?' . LinkCollection::class;
     }
 
-    public function getFieldType(): string
+    public function getFieldType(): FieldType
     {
-        return 'LINKS';
+        return FieldType::LINKS;
     }
 }
