@@ -42,6 +42,8 @@ abstract class IntegrationTestCase extends TestCase
 
     /**
      * Initialize entity services.
+     *
+     * Services now use static entity metadata - no runtime API calls needed!
      */
     private function initializeServices(): void
     {
@@ -57,16 +59,11 @@ abstract class IntegrationTestCase extends TestCase
             $_ENV['TWENTY_API_BASE_URI']
         );
 
-        $metadataService = new MetadataService($httpClient);
-        $registry = new EntityRegistry($httpClient, $metadataService);
-
-        $personDef = $registry->getDefinition('person');
-        $companyDef = $registry->getDefinition('company');
-        $campaignDef = $registry->getDefinition('campaign');
-
-        $this->personService = new PersonService($httpClient, $personDef);
-        $this->companyService = new CompanyService($httpClient, $companyDef);
-        $this->campaignService = new CampaignService($httpClient, $campaignDef);
+        // Services now create EntityDefinition from static entity metadata
+        // No need to fetch metadata from the API at runtime!
+        $this->personService = new PersonService($httpClient);
+        $this->companyService = new CompanyService($httpClient);
+        $this->campaignService = new CampaignService($httpClient);
     }
 
     protected function tearDown(): void

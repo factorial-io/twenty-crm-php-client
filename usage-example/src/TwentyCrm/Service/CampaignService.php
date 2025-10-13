@@ -9,7 +9,6 @@ use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Entity\Campaign;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
-use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\Services\GenericEntityService;
 
@@ -25,11 +24,11 @@ use Factorial\TwentyCrm\Services\GenericEntityService;
 final class CampaignService
 {
     private readonly GenericEntityService $genericService;
-    private readonly EntityDefinition $definition;
 
-    public function __construct(HttpClientInterface $httpClient, EntityDefinition $definition)
+    public function __construct(HttpClientInterface $httpClient)
     {
-        $this->definition = $definition;
+        // Create EntityDefinition from static entity metadata
+        $definition = Campaign::createDefinition();
         $this->genericService = new GenericEntityService($httpClient, $definition);
     }
 
@@ -41,7 +40,7 @@ final class CampaignService
      */
     public function createInstance(array $data = []): Campaign
     {
-        return new Campaign($this->definition, $data);
+        return new Campaign($data);
     }
 
     /**
@@ -71,7 +70,7 @@ final class CampaignService
             return null;
         }
 
-        return new Campaign($this->definition, $entity->toArray());
+        return new Campaign($entity->toArray());
     }
 
     /**
@@ -83,7 +82,7 @@ final class CampaignService
     public function create(Campaign $entity): Campaign
     {
         $created = $this->genericService->create($entity);
-        return new Campaign($this->definition, $created->toArray());
+        return new Campaign($created->toArray());
     }
 
     /**
@@ -95,7 +94,7 @@ final class CampaignService
     public function update(Campaign $entity): Campaign
     {
         $updated = $this->genericService->update($entity);
-        return new Campaign($this->definition, $updated->toArray());
+        return new Campaign($updated->toArray());
     }
 
     /**

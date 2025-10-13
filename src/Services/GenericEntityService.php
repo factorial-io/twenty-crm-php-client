@@ -6,6 +6,7 @@ namespace Factorial\TwentyCrm\Services;
 
 use Factorial\TwentyCrm\Collection\DynamicEntityCollection;
 use Factorial\TwentyCrm\DTO\SearchOptions;
+use Factorial\TwentyCrm\Entity\AbstractEntity;
 use Factorial\TwentyCrm\Entity\DynamicEntity;
 use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\Exception\ApiException;
@@ -18,8 +19,9 @@ use Psr\Log\NullLogger;
 /**
  * Generic entity service for CRUD operations on any Twenty CRM entity.
  *
- * This service works with DynamicEntity and EntityDefinition to provide
- * flexible entity operations without hardcoded DTOs.
+ * This service works with AbstractEntity and EntityDefinition to provide
+ * flexible entity operations. Accepts both DynamicEntity (runtime) and
+ * StaticEntity (code-generated) implementations.
  */
 class GenericEntityService
 {
@@ -115,10 +117,10 @@ class GenericEntityService
     /**
      * Create a new entity.
      *
-     * @param DynamicEntity $entity The entity to create
+     * @param AbstractEntity $entity The entity to create
      * @return DynamicEntity The created entity with ID
      */
-    public function create(DynamicEntity $entity): DynamicEntity
+    public function create(AbstractEntity $entity): DynamicEntity
     {
         $data = $entity->toArray();
 
@@ -144,11 +146,11 @@ class GenericEntityService
     /**
      * Update an existing entity.
      *
-     * @param DynamicEntity $entity The entity to update (must have ID)
+     * @param AbstractEntity $entity The entity to update (must have ID)
      * @return DynamicEntity The updated entity
      * @throws \InvalidArgumentException If entity has no ID
      */
-    public function update(DynamicEntity $entity): DynamicEntity
+    public function update(AbstractEntity $entity): DynamicEntity
     {
         $id = $entity->getId();
         if (!$id) {
@@ -220,12 +222,12 @@ class GenericEntityService
     /**
      * Batch upsert entities.
      *
-     * @param DynamicEntity[] $entities The entities to upsert
+     * @param AbstractEntity[] $entities The entities to upsert
      * @return DynamicEntityCollection The upserted entities
      */
     public function batchUpsert(array $entities): DynamicEntityCollection
     {
-        $data = array_map(fn (DynamicEntity $entity) => $entity->toArray(), $entities);
+        $data = array_map(fn (AbstractEntity $entity) => $entity->toArray(), $entities);
 
         $this->logger->debug('Batch upserting entities', [
             'entity' => $this->definition->objectNamePlural,

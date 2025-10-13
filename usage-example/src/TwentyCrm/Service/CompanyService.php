@@ -9,7 +9,6 @@ use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Entity\Company;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
-use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\Services\GenericEntityService;
 
@@ -25,11 +24,11 @@ use Factorial\TwentyCrm\Services\GenericEntityService;
 final class CompanyService
 {
     private readonly GenericEntityService $genericService;
-    private readonly EntityDefinition $definition;
 
-    public function __construct(HttpClientInterface $httpClient, EntityDefinition $definition)
+    public function __construct(HttpClientInterface $httpClient)
     {
-        $this->definition = $definition;
+        // Create EntityDefinition from static entity metadata
+        $definition = Company::createDefinition();
         $this->genericService = new GenericEntityService($httpClient, $definition);
     }
 
@@ -41,7 +40,7 @@ final class CompanyService
      */
     public function createInstance(array $data = []): Company
     {
-        return new Company($this->definition, $data);
+        return new Company($data);
     }
 
     /**
@@ -71,7 +70,7 @@ final class CompanyService
             return null;
         }
 
-        return new Company($this->definition, $entity->toArray());
+        return new Company($entity->toArray());
     }
 
     /**
@@ -83,7 +82,7 @@ final class CompanyService
     public function create(Company $entity): Company
     {
         $created = $this->genericService->create($entity);
-        return new Company($this->definition, $created->toArray());
+        return new Company($created->toArray());
     }
 
     /**
@@ -95,7 +94,7 @@ final class CompanyService
     public function update(Company $entity): Company
     {
         $updated = $this->genericService->update($entity);
-        return new Company($this->definition, $updated->toArray());
+        return new Company($updated->toArray());
     }
 
     /**

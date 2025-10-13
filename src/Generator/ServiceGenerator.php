@@ -50,7 +50,6 @@ class ServiceGenerator
         $namespace->addUse(SearchOptions::class);
         $namespace->addUse(ApiException::class);
         $namespace->addUse(HttpClientInterface::class);
-        $namespace->addUse(EntityDefinition::class);
         $namespace->addUse(GenericEntityService::class);
 
         // Add use for entity and collection classes from other namespaces
@@ -76,17 +75,12 @@ class ServiceGenerator
             ->setReadOnly()
             ->setType(GenericEntityService::class);
 
-        $class->addProperty('definition')
-            ->setPrivate()
-            ->setReadOnly()
-            ->setType(EntityDefinition::class);
-
         // Add constructor
         $constructor = $class->addMethod('__construct');
         $constructor->addParameter('httpClient')->setType(HttpClientInterface::class);
-        $constructor->addParameter('definition')->setType(EntityDefinition::class);
         $constructor->setBody(
-            '$this->definition = $definition;' . "\n" .
+            '// Create EntityDefinition from static entity metadata' . "\n" .
+            '$definition = ' . $entityClassName . '::createDefinition();' . "\n" .
             '$this->genericService = new GenericEntityService($httpClient, $definition);'
         );
 
@@ -129,7 +123,7 @@ class ServiceGenerator
             ->setType('array')
             ->setDefaultValue([]);
 
-        $method->setBody('return new ' . $entityClassName . '($this->definition, $data);');
+        $method->setBody('return new ' . $entityClassName . '($data);');
     }
 
     private function addFindMethod(ClassType $class, string $entityClassName, string $collectionClassName): void
@@ -172,7 +166,7 @@ class ServiceGenerator
             'if ($entity === null) {' . "\n" .
             '    return null;' . "\n" .
             '}' . "\n\n" .
-            'return new ' . $entityClassName . '($this->definition, $entity->toArray());'
+            'return new ' . $entityClassName . '($entity->toArray());'
         );
     }
 
@@ -191,7 +185,7 @@ class ServiceGenerator
 
         $method->setBody(
             '$created = $this->genericService->create($entity);' . "\n" .
-            'return new ' . $entityClassName . '($this->definition, $created->toArray());'
+            'return new ' . $entityClassName . '($created->toArray());'
         );
     }
 
@@ -210,7 +204,7 @@ class ServiceGenerator
 
         $method->setBody(
             '$updated = $this->genericService->update($entity);' . "\n" .
-            'return new ' . $entityClassName . '($this->definition, $updated->toArray());'
+            'return new ' . $entityClassName . '($updated->toArray());'
         );
     }
 

@@ -50,6 +50,16 @@ class PersonServiceTest extends IntegrationTestCase
         $this->assertEquals($person->getJobTitle(), $created->getJobTitle());
         $this->assertStringContainsString('5551234567', $created->getPhones()->getPrimaryPhone()->getNumber());
 
+        // Load the entity again using the UUID to verify persistence
+        $retrieved = $this->getPersonService()->getById($created->getId());
+
+        $this->assertNotNull($retrieved);
+        $this->assertEquals($email, $retrieved->getEmails()->getPrimaryEmail());
+        $this->assertEquals($person->getName()->getFirstName(), $retrieved->getName()->getFirstName());
+        $this->assertEquals($person->getName()->getLastName(), $retrieved->getName()->getLastName());
+        $this->assertEquals($person->getJobTitle(), $retrieved->getJobTitle());
+        $this->assertStringContainsString('5551234567', $retrieved->getPhones()->getPrimaryPhone()->getNumber());
+
         // Track for cleanup
         $this->trackResource('person', $created->getId());
     }

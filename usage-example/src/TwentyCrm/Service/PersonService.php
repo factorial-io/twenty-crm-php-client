@@ -9,7 +9,6 @@ use Factorial\TwentyCrm\DTO\SearchOptions;
 use Factorial\TwentyCrm\Entity\Person;
 use Factorial\TwentyCrm\Exception\ApiException;
 use Factorial\TwentyCrm\Http\HttpClientInterface;
-use Factorial\TwentyCrm\Metadata\EntityDefinition;
 use Factorial\TwentyCrm\Query\FilterInterface;
 use Factorial\TwentyCrm\Services\GenericEntityService;
 
@@ -25,11 +24,11 @@ use Factorial\TwentyCrm\Services\GenericEntityService;
 final class PersonService
 {
     private readonly GenericEntityService $genericService;
-    private readonly EntityDefinition $definition;
 
-    public function __construct(HttpClientInterface $httpClient, EntityDefinition $definition)
+    public function __construct(HttpClientInterface $httpClient)
     {
-        $this->definition = $definition;
+        // Create EntityDefinition from static entity metadata
+        $definition = Person::createDefinition();
         $this->genericService = new GenericEntityService($httpClient, $definition);
     }
 
@@ -41,7 +40,7 @@ final class PersonService
      */
     public function createInstance(array $data = []): Person
     {
-        return new Person($this->definition, $data);
+        return new Person($data);
     }
 
     /**
@@ -71,7 +70,7 @@ final class PersonService
             return null;
         }
 
-        return new Person($this->definition, $entity->toArray());
+        return new Person($entity->toArray());
     }
 
     /**
@@ -83,7 +82,7 @@ final class PersonService
     public function create(Person $entity): Person
     {
         $created = $this->genericService->create($entity);
-        return new Person($this->definition, $created->toArray());
+        return new Person($created->toArray());
     }
 
     /**
@@ -95,7 +94,7 @@ final class PersonService
     public function update(Person $entity): Person
     {
         $updated = $this->genericService->update($entity);
-        return new Person($this->definition, $updated->toArray());
+        return new Person($updated->toArray());
     }
 
     /**

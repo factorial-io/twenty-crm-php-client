@@ -197,22 +197,32 @@ class EntityGenerator
         $file->setStrictTypes();
 
         $namespace = $file->addNamespace($this->config->getEntityNamespace());
-        $namespace->addUse(DynamicEntity::class);
-        $namespace->addUse(EntityDefinition::class);
+        $namespace->addUse('Factorial\TwentyCrm\Entity\StaticEntity');
+        $namespace->addUse('Factorial\TwentyCrm\Enums\FieldType');
+
+        // Add use statements for collection types
+        foreach ($definition->fields as $field) {
+            if ($this->handlers->hasHandler($field->type)) {
+                $phpType = $this->handlers->getPhpType($field->type);
+                $phpType = ltrim($phpType, '?');
+                if (!in_array($phpType, ['mixed', 'string', 'int', 'bool', 'float', 'array'], true)) {
+                    $namespace->addUse($phpType);
+                }
+            }
+        }
 
         $class = $namespace->addClass($className);
-        $class->setExtends(DynamicEntity::class);
+        $class->setExtends('Factorial\TwentyCrm\Entity\StaticEntity');
         $class->setComment("{$className} entity (auto-generated).\n\n"
             . "This class provides typed access to {$definition->objectName} entity fields.\n"
             . "Generated from Twenty CRM metadata.\n\n"
+            . "All metadata is baked into this class at generation time,\n"
+            . "so no runtime API calls are needed.\n\n"
             . "@codingStandardsIgnoreFile\n"
             . "@phpstan-ignore-file");
 
-        // Add constructor
-        $constructor = $class->addMethod('__construct');
-        $constructor->addParameter('definition')->setType(EntityDefinition::class);
-        $constructor->addParameter('data')->setType('array')->setDefaultValue([]);
-        $constructor->setBody('parent::__construct($definition, $data);');
+        // Generate static metadata methods
+        $this->addStaticMetadataMethods($class, $definition);
 
         // Generate getters and setters for each field
         foreach ($definition->fields as $fieldName => $field) {
@@ -347,5 +357,172 @@ class EntityGenerator
     private function getFilePath(string $className): string
     {
         return $this->config->getEntityDir() . '/' . $className . '.php';
+    }
+
+    /**
+     * Add static metadata methods to the class.
+     *
+     * These methods provide all metadata at compile-time, eliminating
+     * the need for runtime EntityDefinition.
+     *
+     * @param \Nette\PhpGenerator\ClassType $class
+     * @param EntityDefinition $definition
+     * @return void
+     */
+    private function addStaticMetadataMethods(\Nette\PhpGenerator\ClassType $class, EntityDefinition $definition): void
+    {
+        // getEntityName()
+        $method = $class->addMethod('getEntityName');
+        $method->setProtected();
+        $method->setStatic();
+        $method->setReturnType('string');
+        $method->setBody("return ?;", [$definition->objectName]);
+
+        // getEntityNamePlural()
+        $method = $class->addMethod('getEntityNamePlural');
+        $method->setProtected();
+        $method->setStatic();
+        $method->setReturnType('string');
+        $method->setBody("return ?;", [$definition->objectNamePlural]);
+
+        // getApiEndpoint()
+        $method = $class->addMethod('getApiEndpoint');
+        $method->setProtected();
+        $method->setStatic();
+        $method->setReturnType('string');
+        $method->setBody("return ?;", [$definition->apiEndpoint]);
+
+        // getAllFieldNames()
+        $fieldNames = array_keys($definition->fields);
+        $method = $class->addMethod('getAllFieldNames');
+        $method->setProtected();
+        $method->setStatic();
+        $method->setReturnType('array');
+        $method->setBody("return ?;", [$fieldNames]);
+
+        // getFieldMetadata()
+        $this->addGetFieldMetadataMethod($class, $definition);
+
+        // getFieldToApiMap()
+        $this->addGetFieldToApiMapMethod($class, $definition);
+
+        // getApiToFieldMap()
+        $this->addGetApiToFieldMapMethod($class, $definition);
+    }
+
+    /**
+     * Add getFieldMetadata() method.
+     *
+     * @param \Nette\PhpGenerator\ClassType $class
+     * @param EntityDefinition $definition
+     * @return void
+     */
+    private function addGetFieldMetadataMethod(\Nette\PhpGenerator\ClassType $class, EntityDefinition $definition): void
+    {
+        $method = $class->addMethod('getFieldMetadata');
+        $method->setProtected();
+        $method->setStatic();
+        $method->addParameter('fieldName')->setType('string');
+        $method->setReturnType('?array');
+
+        // Build match expression for field metadata
+        $cases = [];
+        foreach ($definition->fields as $fieldName => $field) {
+            $handlers = $this->handlers;
+            $hasHandler = $handlers->hasHandler($field->type);
+
+            $metadata = [
+                'type' => new \Nette\PhpGenerator\Literal("FieldType::{$field->type->name}"),
+                'nullable' => $field->isNullable,
+                'hasHandler' => $hasHandler,
+                'isCustom' => $field->isCustom,
+                'isSystem' => $field->isSystem,
+                'label' => $field->label,
+                'description' => $field->description,
+                'defaultValue' => $field->defaultValue,
+                'objectMetadataId' => $field->objectMetadataId,
+                'id' => $field->id,
+                'isActive' => $field->isActive,
+                'icon' => $field->icon,
+            ];
+
+            $cases[] = "'{$fieldName}' => " . $this->arrayToCode($metadata);
+        }
+
+        $body = "return match (\$fieldName) {\n    " . implode(",\n    ", $cases) . ",\n    default => null,\n};";
+        $method->setBody($body);
+    }
+
+    /**
+     * Add getFieldToApiMap() method.
+     *
+     * @param \Nette\PhpGenerator\ClassType $class
+     * @param EntityDefinition $definition
+     * @return void
+     */
+    private function addGetFieldToApiMapMethod(\Nette\PhpGenerator\ClassType $class, EntityDefinition $definition): void
+    {
+        $method = $class->addMethod('getFieldToApiMap');
+        $method->setProtected();
+        $method->setStatic();
+        $method->setReturnType('array');
+
+        $map = [];
+        foreach ($definition->fields as $fieldName => $field) {
+            if ($field->type->isRelation()) {
+                $map[$fieldName] = $fieldName . 'Id';
+            }
+        }
+
+        $method->setBody("return ?;", [$map]);
+    }
+
+    /**
+     * Add getApiToFieldMap() method.
+     *
+     * @param \Nette\PhpGenerator\ClassType $class
+     * @param EntityDefinition $definition
+     * @return void
+     */
+    private function addGetApiToFieldMapMethod(\Nette\PhpGenerator\ClassType $class, EntityDefinition $definition): void
+    {
+        $method = $class->addMethod('getApiToFieldMap');
+        $method->setProtected();
+        $method->setStatic();
+        $method->setReturnType('array');
+
+        $map = [];
+        foreach ($definition->fields as $fieldName => $field) {
+            if ($field->type->isRelation()) {
+                $map[$fieldName . 'Id'] = $fieldName;
+            }
+        }
+
+        $method->setBody("return ?;", [$map]);
+    }
+
+    /**
+     * Convert array to PHP code representation.
+     *
+     * @param array<string, mixed> $array
+     * @return string
+     */
+    private function arrayToCode(array $array): string
+    {
+        $parts = [];
+        foreach ($array as $key => $value) {
+            if ($value === null) {
+                $parts[] = "'{$key}' => null";
+            } elseif (is_bool($value)) {
+                $parts[] = "'{$key}' => " . ($value ? 'true' : 'false');
+            } elseif (is_string($value)) {
+                $parts[] = "'{$key}' => " . var_export($value, true);
+            } elseif ($value instanceof \Nette\PhpGenerator\Literal) {
+                $parts[] = "'{$key}' => {$value}";
+            } else {
+                $parts[] = "'{$key}' => " . var_export($value, true);
+            }
+        }
+        return '[' . implode(', ', $parts) . ']';
     }
 }
