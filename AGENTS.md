@@ -335,8 +335,7 @@ See `MIGRATION.md` if you need to understand the evolution.
 ## Dependencies Worth Knowing
 
 **Core:**
-- **PHP 8.2+** (uses modern features like typed properties, readonly)
-- **`cuyz/valinor`** - Object mapping and validation
+- **PHP 8.1+** (uses modern features like typed properties, readonly)
 - **`nette/php-generator`** - Generates PSR-12 compliant code
 - **`symfony/console`** - CLI tool framework
 - **`symfony/yaml`** - Config file parsing
