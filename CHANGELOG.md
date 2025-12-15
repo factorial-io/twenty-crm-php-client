@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2025-12-15
+
+- fix(Address): handle 'addressPostcode' key from Twenty CRM API
+- docs: update changelog for 0.4.1
+
 ## [0.4.1] - 2025-10-12
 
 - feat: add optional data parameter to createInstance() method
