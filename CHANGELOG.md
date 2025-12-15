@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2025-12-15
+
+- chore: remove unused cuyz/valinor dependency to support PHP 8.5
+- docs: update changelog for 0.4.2
+
 ## [0.4.2] - 2025-12-15
 
 - fix(Address): handle 'addressPostcode' key from Twenty CRM API
