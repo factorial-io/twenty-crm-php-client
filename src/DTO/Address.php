@@ -48,7 +48,9 @@ class Address implements \JsonSerializable
             addressStreet2: $data['addressStreet2'] ?? null,
             addressCity: $data['addressCity'] ?? null,
             addressState: $data['addressState'] ?? null,
-            addressPostCode: $data['addressPostCode'] ?? null,
+            // Twenty CRM API returns 'addressPostcode' (lowercase 'c'), but we also
+            // support 'addressPostCode' (camelCase) for consistency with other fields.
+            addressPostCode: $data['addressPostCode'] ?? $data['addressPostcode'] ?? null,
             addressCountry: $data['addressCountry'] ?? null,
             addressLat: isset($data['addressLat']) ? (float) $data['addressLat'] : null,
             addressLng: isset($data['addressLng']) ? (float) $data['addressLng'] : null,
