@@ -50,6 +50,7 @@ class GuzzleHttpClientTest extends TestCase
             $factory,
             new BearerTokenAuth('token'),
             'https://twenty.test/rest',
-            rateLimiter: new BackoffRateLimiter($maxRetries, 0));
+            rateLimiter: new BackoffRateLimiter($maxRetries, 0)
+        );
     }
 }
