@@ -475,6 +475,27 @@ use Factorial\TwentyCrm\Auth\BearerTokenAuth;
 $auth = new BearerTokenAuth('your-api-token');
 ```
 
+### Rate Limiting
+
+Twenty allows a fixed number of requests per minute per API key. By default a
+rate-limited request (HTTP 429) waits and is retried up to 3 times (Retry-After,
+else 5, 10, 20 seconds). Tune it with `BackoffRateLimiter`, or pass your own
+`RateLimiterInterface`: `beforeRequest()` may block to pace requests (e.g. a
+token bucket shared across processes), `shouldRetry()` decides on a 429.
+
+```php
+use Factorial\TwentyCrm\Http\BackoffRateLimiter;
+
+$httpClient = new GuzzleHttpClient(
+    $guzzle,
+    $httpFactory,
+    $streamFactory,
+    $auth,
+    'https://api.twenty.com/rest/',
+    rateLimiter: new BackoffRateLimiter(maxRetries: 6, delay: 10),
+);
+```
+
 ### Logging
 
 The library supports PSR-3 logging for debugging and monitoring API interactions.
@@ -509,6 +530,7 @@ $persons = $client->entity('person')->find($filter, $options);
 
 **Log Levels:**
 - **DEBUG**: API requests/responses, entity operations, service initialization
+- **WARNING**: Rate-limited requests (HTTP 429)
 - **ERROR**: Authentication failures, API errors, network errors
 
 **Example Log Output:**

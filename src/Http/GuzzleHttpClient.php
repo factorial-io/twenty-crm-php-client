@@ -18,6 +18,9 @@ use Psr\Log\NullLogger;
 
 /**
  * Guzzle HTTP client implementation.
+ *
+ * Requests are paced and rate-limited ones (HTTP 429) retried by the rate
+ * limiter, BackoffRateLimiter by default.
  */
 final class GuzzleHttpClient implements HttpClientInterface
 {
@@ -28,6 +31,7 @@ final class GuzzleHttpClient implements HttpClientInterface
         private readonly AuthenticationInterface $authentication,
         private readonly string $baseUri,
         private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly RateLimiterInterface $rateLimiter = new BackoffRateLimiter(),
     ) {
     }
 
@@ -70,7 +74,17 @@ final class GuzzleHttpClient implements HttpClientInterface
                 'body' => $options['json'] ?? null,
             ]);
 
-            $response = $this->httpClient->sendRequest($request);
+            for ($attempt = 0;; $attempt++) {
+                $this->rateLimiter->beforeRequest($request);
+                $response = $this->httpClient->sendRequest($request);
+                if ($response->getStatusCode() !== 429) {
+                    break;
+                }
+                $this->logger->warning('Rate limited', ['url' => (string) $request->getUri(), 'attempt' => $attempt]);
+                if (!$this->rateLimiter->shouldRetry($request, $response, $attempt)) {
+                    break;
+                }
+            }
             $statusCode = $response->getStatusCode();
             $body = (string) $response->getBody();
 
