@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.4] - 2026-11-25
+
+- feat(http): wait out rate limits (HTTP 429) and retry; pass a RateLimiterInterface to GuzzleHttpClient to pace requests yourself
+- docs: update changelog for 0.4.3
+
 ## [0.4.3] - 2025-12-15
 
 - chore: remove unused cuyz/valinor dependency to support PHP 8.5
